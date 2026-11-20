@@ -1,0 +1,7 @@
+_raw/
+_shots/
+dist/
+_src/data.json
+_src/mkw_special.json
+_src/crosscheck_report.txt
+__pycache__/

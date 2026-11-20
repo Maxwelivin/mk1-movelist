@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MK1 招式表（PS5）</title>
+<style>
+:root{
+  --bg:#121419;--card:#1c1f27;--card2:#232733;--line:#2e3341;--text:#e9e9ee;--dim:#9aa0ae;
+  --accent:#e0483e;--gold:#e8b85a;
+  --tri:#3fcf9f;--cir:#ff6170;--crs:#7ea8ff;--sqr:#f28fd3;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 "Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,sans-serif}
+a{color:inherit}
+header{position:sticky;top:0;z-index:10;background:#0d0f13ee;backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.bar{max-width:1100px;margin:0 auto;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.logo{font-weight:800;font-size:18px;letter-spacing:.5px;text-decoration:none;white-space:nowrap}
+.logo b{color:var(--accent)}
+nav{display:flex;gap:6px}
+nav a{padding:5px 12px;border-radius:999px;text-decoration:none;background:var(--card);border:1px solid var(--line);font-size:14px;white-space:nowrap}
+nav a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.search{flex:1 1 200px;min-width:0}
+.search input{width:100%;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px}
+.opts{display:flex;gap:10px;font-size:13px;color:var(--dim)}
+.opts label{display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+main{max-width:1100px;margin:0 auto;padding:14px}
+h1{font-size:22px;margin:6px 0 2px}
+h2{font-size:18px;margin:22px 0 8px;border-left:4px solid var(--accent);padding-left:8px}
+.sub{color:var(--dim);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13px;color:var(--text);text-decoration:none}
+.chip.on{border-color:var(--gold);color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px}
+.cc{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:border-color .15s}
+.cc:hover{border-color:var(--accent)}
+.cc .nm{font-weight:700;font-size:16px}
+.cc .tt{color:var(--dim);font-size:12px;line-height:1.35;margin-top:2px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--dim);margin-top:6px}
+.tag.kp1{color:#8fd0ff;border-color:#2b4d66}.tag.kp2{color:#ffb38a;border-color:#6a3d25}
+.back{display:inline-block;margin-bottom:6px;color:var(--dim);text-decoration:none;font-size:14px}
+.jump{position:sticky;top:var(--hdr,56px);z-index:5;background:var(--bg);padding:6px 0;margin:8px 0 0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+.jump a{flex:none;font-size:13px;padding:3px 10px;border-radius:8px;background:var(--card);border:1px solid var(--line);text-decoration:none}
+details.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow:hidden}
+details.sec>summary{cursor:pointer;list-style:none;padding:10px 14px;font-weight:700;font-size:16px;display:flex;justify-content:space-between;align-items:center;background:var(--card2)}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"▾";color:var(--dim);transition:transform .15s}
+details.sec:not([open])>summary::after{transform:rotate(-90deg)}
+summary .cnt{font-weight:400;color:var(--dim);font-size:12px;margin-left:8px}
+.snote{padding:8px 14px 0;color:var(--dim);font-size:13px}
+.rows{padding:4px 0}
+.row{display:grid;grid-template-columns:minmax(140px,38%) 1fr;gap:4px 14px;padding:7px 14px;border-top:1px solid #262a35;align-items:start}
+.row:first-child{border-top:0}
+.row.subr{padding-left:30px;background:#191c23}
+.row.subr .mn::before{content:"↳ ";color:var(--dim)}
+.row.hd{grid-template-columns:1fr;font-weight:700;color:var(--gold);background:#1a1d24}
+.row.bh{grid-template-columns:1fr}
+.mn{font-weight:600;word-break:break-word}
+.mn .zh{display:block;font-weight:400;color:var(--gold);font-size:13px}
+.inp{display:flex;flex-wrap:wrap;align-items:center;gap:3px 2px;word-break:break-word}
+.inp .t{color:var(--dim);font-size:13px;margin:0 2px}
+.k{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 4px;border-radius:7px;font-weight:800;font-size:16px;background:#2a2f3c;border:1px solid #3a4050;line-height:1}
+.k.d{color:#fff;font-size:17px;background:#262a35}
+.k.sq{color:var(--sqr)}.k.tr{color:var(--tri)}.k.cr{color:var(--crs)}.k.ci{color:var(--cir)}
+.k svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linejoin:round;stroke-linecap:round}
+.warn .k svg{width:14px;height:14px}
+.inp .t.p{margin:0;font-size:14px}
+.k.sh{font-size:12px;min-width:30px;border-radius:999px;color:#ddd;background:#343a49}
+.rng{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:#3a2a17;color:var(--gold);margin-left:6px;border:1px solid #5b4321}
+.warn{grid-column:1/-1;font-size:12.5px;color:#ffcf7a;background:#3a2c12;border:1px solid #6b5220;border-radius:8px;padding:4px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:3px}
+.warn .k{height:22px;min-width:22px;font-size:14px}
+table.ct{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 4px}
+table.ct td,table.ct th{padding:8px 12px;border-top:1px solid #262a35;text-align:left;vertical-align:top}
+table.ct th{background:var(--card2);font-size:13px;color:var(--dim);font-weight:600}
+table.ct td:first-child{white-space:nowrap;width:1%}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}
+.box p{margin:6px 0}
+.res-c{font-size:12px;color:var(--accent);font-weight:700}
+footer{max-width:1100px;margin:30px auto 40px;padding:0 14px;color:var(--dim);font-size:12.5px}
+.empty{color:var(--dim);padding:20px 0}
+@media (max-width:640px){
+  .row{grid-template-columns:1fr;gap:3px}
+  .row.subr{padding-left:22px}
+  .opts{width:100%;justify-content:flex-end}
+  .logo{font-size:16px}
+  nav a{padding:4px 10px}
+  .cc{padding:9px 10px}.cc .nm{font-size:15px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="logo" href="#">MK1 <b>招式表</b> · PS5</a>
+    <nav>
+      <a href="#controls" data-v="controls">操作表</a>
+      <a href="#" data-v="list">角色</a>
+      <a href="#kameo" data-v="kameo">Kameo</a>
+    </nav>
+    <div class="search"><input id="q" type="search" placeholder="搜尋角色或招式名稱" autocomplete="off"></div>
+    <div class="opts">
+      <label title="角色在右邊、面向左時，把 ← → 對調顯示"><input type="checkbox" id="mirror">面向左</label>
+      <label title="把 Enhance、Hold 等說明翻成中文"><input type="checkbox" id="zhnote" checked>說明中文</label>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<footer id="foot"></footer>
+<script>
+const DATA = /*__DATA__*/null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const st = {mirror: localStorage.mk1mirror === "1", zh: localStorage.mk1zh !== "0", pack: "all"};
+$("#mirror").checked = st.mirror; $("#zhnote").checked = st.zh;
+
+const SV = b => `<svg viewBox="0 0 20 20" aria-hidden="true">${b}</svg>`;
+const BTN = {
+  FP:[SV('<rect x="4" y="4" width="12" height="12" rx="1"/>'),"sq"],
+  BP:[SV('<path d="M10 3.2 17.4 16H2.6Z"/>'),"tr"],
+  FK:[SV('<path d="M4.5 4.5 15.5 15.5M15.5 4.5 4.5 15.5"/>'),"cr"],
+  BK:[SV('<circle cx="10" cy="10" r="6.3"/>'),"ci"],
+  TH:["L1","sh"],KA:["R1","sh"],FS:["L2","sh"],BL:["R2","sh"]};
+const DIR = {F:"→",B:"←",D:"↓",U:"↑",UF:"↗",UB:"↖",DF:"↘",DB:"↙"};
+const MIR = {F:"B",B:"F",UF:"UB",UB:"UF",DF:"DB",DB:"DF"};
+const BTN_NAME = {FP:"前拳",BP:"後拳",FK:"前踢",BK:"後踢",TH:"投技",KA:"Kameo",FS:"Flip Stance",BL:"防禦／強化"};
+const TR = [
+  [/Also [Ii]n Air/g,"空中也可"],[/\bIn Air\b/g,"空中"],[/\(Air\)/g,"（空中）"],
+  [/Can Be Enhanced/g,"可強化"],[/Can Be Delayed/g,"可延遲"],[/\bEnhanced\b/g,"強化版"],[/\bEnhance\b/g,"強化"],
+  [/Final Hit Must (?:Come|Be) From /g,"最後一擊須為 "],[/ Basic Attack\b/g," 普通技"],
+  [/Press Any Basic Attack Button Rapidly/g,"連打任一攻擊鍵"],[/(\d+) Times/g,"$1 次"],
+  [/,?\s*During Hit/g," 命中時"],[/\bPress /g,"輸入 "],[/\bHold /g,"按住 "],[/\(Hold\)/g,"（按住）"],[/\bTap /g,"連按 "],
+  [/\bto Extend\b/g,"延長"],[/\bto Delay\b/g,"延遲"],[/\bto Charge\b/g,"蓄力"],[/\bCancel\b/g,"取消"],[/\bDelay\b/g,"延遲"],[/\bExtend\b/g,"延長"],[/\bto Charge\b/g,"蓄力"],[/\bCharge\b/g,"蓄力"],
+  [/Costs (\d) Bars? of Super Meter/g,"耗 $1 格能量"],[/Uses Meter/g,"耗能量"],[/Super Meter/g,"能量"],
+  [/Must Be Full Screen/g,"須在全畫面距離"],[/Must Kill With Full Kombo/g,"須以完整連段擊殺"],
+  [/Requires /g,"需要 "],[/\bDuring ([^()\[\],]+?)(?=$|[)\],])/g,"$1 期間"],
+  [/\bClose\b/g,"近"],[/\bFar\b/g,"遠"],[/\bAway\b/g,"往後"],[/\bToward\b/g,"往前"],[/But not beside/g,"但不要貼身"]
+];
+const RNG = {Close:"近",Mid:"中",Far:"遠","Very Far":"極遠",Anywhere:"任何",Jump:"一跳",Fullscreen:"全畫面"};
+function rangeLabel(r){
+  const parts = r.split(/([-/])/);
+  if (parts.length === 1) return ({Close:"近身",Mid:"中距離",Far:"遠距離","Very Far":"極遠距離",Anywhere:"任何距離",Jump:"一跳距離",Fullscreen:"全畫面"})[r] || r;
+  return parts.map(p => p === "-" ? "～" : p === "/" ? "／" : (RNG[p] || p)).join("") + "距離";
+}
+function tr(t){ if (!st.zh) return t; for (const [a,b] of TR) t = t.replace(a,b); return t; }
+function key(kind, v){
+  if (kind === "d"){ if (st.mirror && MIR[v]) v = MIR[v]; return `<span class="k d" title="${v}">${DIR[v]}</span>`; }
+  const [g,c] = BTN[v]; return `<span class="k ${c}" title="${BTN_NAME[v]}">${g}</span>`;
+}
+function rin(s){
+  if (!s) return "";
+  const p = s.split(/⟦([db]):(\w+)⟧/);
+  let o = "";
+  for (let i = 0; i < p.length; i += 3){
+    const t = tr(p[i]).trim();
+    if (t) o += `<span class="t${/^[()\[\],:：+\-–\s]+$/.test(t) ? " p" : ""}">${esc(t.replace(/\s*:$/, "："))}</span>`;
+    if (i + 2 < p.length) o += key(p[i+1], p[i+2]);
+  }
+  return o;
+}
+const PACK = {base:"本體", kp1:"Kombat Pack 1", kp2:"Kombat Pack 2"};
+const PACK_MAIN = {base:"本體", kp1:"Kombat Pack 1", kp2:"Khaos Reigns／Kombat Pack 2"};
+const byId = Object.fromEntries(DATA.chars.map(c => [c.id, c]));
+
+function rowHTML(it){
+  if (it.h) return `<div class="row hd">${esc(tr(it.h))}</div>`;
+  const nm = it.n ? esc(it.n) : "";
+  const zh = it.zh ? `<span class="zh">${esc(it.zh)}</span>` : "";
+  const rng = it.r ? `<span class="rng">${rangeLabel(it.r)}${it.rn ? "・" + esc(tr(it.rn)) : ""}</span>` : "";
+  const warn = it.warn ? `<div class="warn">⚠ 來源不一致：${rin(it.warn)}</div>` : "";
+  if (!it.i && !it.sub) return `<div class="row bh"><div class="mn">${nm}${zh}${rng}</div>${warn}</div>`;
+  return `<div class="row${it.sub ? " subr" : ""}"><div class="mn">${nm}${zh}</div><div class="inp">${rin(it.i)}${rng}</div>${warn}</div>`;
+}
+function secHTML(s, idx, open){
+  const n = s.items.filter(x => !x.sub && !x.h && x.n).length;
+  return `<details class="sec" id="s${idx}" ${open ? "open" : ""}><summary><span>${esc(s.t)}<span class="cnt">${n} 項</span></span></summary>` +
+    (s.note ? `<div class="snote">${rin(s.note)}</div>` : "") +
+    `<div class="rows">${s.items.map(rowHTML).join("")}</div></details>`;
+}
+function charPage(id){
+  const c = byId[id];
+  if (!c) return listPage("main");
+  const kam = c.group === "kameo";
+  const jump = c.secs.map((s,i) => `<a href="#c/${c.id}/${i}">${esc(s.t)}</a>`).join("");
+  return `<a class="back" href="${kam ? "#kameo" : "#"}">← 回${kam ? " Kameo" : "角色"}列表</a>
+    <h1>${esc(c.name)}${kam ? "（Kameo）" : ""}</h1>
+    <div class="sub">${esc(c.title || "")} <span class="tag ${c.pack}">${(kam ? PACK : PACK_MAIN)[c.pack]}</span></div>
+    ${kam ? `<div class="box sub">Kameo 招式用 <span class="k sh">R1</span> 搭配方向發動；終結技需在「FINISH HIM／HER」時輸入。</div>` : ""}
+    <nav class="jump">${jump}</nav>
+    ${c.secs.map((s,i) => secHTML(s, i, s.k !== "brutal")).join("")}`;
+}
+function listPage(kind){
+  const list = DATA.chars.filter(c => kind === "kameo" ? c.group === "kameo" : c.group === "main");
+  const packs = ["all","base","kp1","kp2"];
+  const names = kind === "kameo" ? PACK : PACK_MAIN;
+  const cur = st.pack;
+  const chips = packs.map(p => `<button class="chip${cur === p ? " on" : ""}" data-pack="${p}">${p === "all" ? "全部" : names[p]}（${list.filter(c => p === "all" || c.pack === p).length}）</button>`).join("");
+  const cards = list.filter(c => cur === "all" || c.pack === cur)
+    .sort((a,b) => a.name.localeCompare(b.name))
+    .map(c => `<a class="cc" href="#c/${c.id}"><div class="nm">${esc(c.name)}</div><div class="tt">${esc(c.title || "Kameo 助攻角色")}</div><span class="tag ${c.pack}">${names[c.pack]}</span></a>`).join("");
+  return `<h1>${kind === "kameo" ? "Kameo 助攻角色" : "可操作角色"}</h1>
+    <div class="sub">點角色看完整招式表。按鍵已換成 PS5 預設鍵位；方向以「角色面向右邊」為準。</div>
+    <div class="chips">${chips}</div><div class="grid">${cards}</div>`;
+}
+function controlsPage(){
+  const K = (v) => key(v.length <= 2 && DIR[v] ? "d" : "b", v);
+  const seasonal = DATA.meta.seasonal.map(rowHTML).join("");
+  return `<h1>基本操作表（PS5 預設）</h1>
+  <div class="sub">若你在遊戲「設定 → 控制」改過按鍵，以遊戲內為準。</div>
+  <h2>按鍵配置</h2>
+  <table class="ct"><tr><th>按鍵</th><th>功能</th><th>英文／其他攻略寫法</th></tr>
+   <tr><td>${K("FP")}</td><td>前拳</td><td>Front Punch、FP、1</td></tr>
+   <tr><td>${K("BP")}</td><td>後拳</td><td>Back Punch、BP、2</td></tr>
+   <tr><td>${K("FK")}</td><td>前踢</td><td>Front Kick、FK、3</td></tr>
+   <tr><td>${K("BK")}</td><td>後踢</td><td>Back Kick、BK、4</td></tr>
+   <tr><td>${K("TH")}</td><td>投技（也可按 ${K("FP")} + ${K("FK")}）</td><td>Throw、Grab</td></tr>
+   <tr><td>${K("KA")}</td><td>叫出 Kameo 助攻</td><td>Kameo、KA</td></tr>
+   <tr><td>${K("FS")}</td><td>Flip Stance（換站姿），也用於 Fatal Blow 和部分角色招式</td><td>Flip Stance、FS</td></tr>
+   <tr><td>${K("BL")}</td><td>防禦；出必殺技時按＝強化</td><td>Block、BL、Enhance</td></tr>
+   <tr><td><span class="k sh">OPTIONS</span></td><td>暫停／遊戲內招式表</td><td>Pause、Start</td></tr>
+  </table>
+  <h2>方向與移動</h2>
+  <div class="box">
+   <p>本站所有招式都以<b>角色面向右邊</b>來寫：${K("F")} 是往對手方向、${K("B")} 是遠離對手。角色在右邊、面向左時，請勾選右上角「面向左」，${K("F")} ${K("B")} 會自動對調。</p>
+  </div>
+  <table class="ct"><tr><th>輸入</th><th>動作</th></tr>
+   <tr><td>${K("F")} ／ ${K("B")}</td><td>前進／後退</td></tr>
+   <tr><td>${K("F")}, ${K("F")}</td><td>向前衝刺（Dash）</td></tr>
+   <tr><td>${K("B")}, ${K("B")}</td><td>向後撤步</td></tr>
+   <tr><td>${K("U")} ／ ${K("UF")} ／ ${K("UB")}</td><td>原地跳／前跳／後跳</td></tr>
+   <tr><td>${K("D")}</td><td>蹲下</td></tr>
+   <tr><td>${K("D")} + ${K("BP")}</td><td>上勾拳（Uppercut，大部分角色通用）</td></tr>
+   <tr><td>${K("B")} + ${K("BK")}</td><td>掃腿（Sweep，大部分角色通用）</td></tr>
+  </table>
+  <h2>防禦</h2>
+  <table class="ct"><tr><th>輸入</th><th>說明</th></tr>
+   <tr><td>按住 ${K("BL")}</td><td>站立防禦：擋上段（High）、中段（Mid）、下壓技（Overhead）。擋不住下段（Low）。</td></tr>
+   <tr><td>${K("D")} + 按住 ${K("BL")}</td><td>蹲下防禦：擋中段、下段。擋不住下壓技（Overhead）。上段攻擊蹲下就能閃過。</td></tr>
+  </table>
+  <h2>投技與破投</h2>
+  <table class="ct"><tr><th>輸入</th><th>說明</th></tr>
+   <tr><td>${K("TH")} 或 ${K("FP")} + ${K("FK")}</td><td>向後投：把對手摔到身後（雙方交換位置）。</td></tr>
+   <tr><td>${K("F")} + ${K("TH")}</td><td>向前投：保持位置。Kameo 可用時，會變成「和 Kameo 合作的投技」（見各 Kameo 的投技）；Kameo 不能用時是推開對手（Shove）。</td></tr>
+   <tr><td>被抓時按 ${K("FP")} 或 ${K("FK")}</td><td>破解「向後投」</td></tr>
+   <tr><td>被抓時按 ${K("BP")} 或 ${K("BK")}</td><td>破解「向前投」</td></tr>
+  </table>
+  <h2>系統技</h2>
+  <table class="ct"><tr><th>名稱</th><th>輸入</th><th>說明</th></tr>
+   <tr><td>Kameo 助攻</td><td>${K("KA")}；${K("F")}／${K("B")}／${K("D")}／${K("U")} + ${K("KA")}</td><td>叫出 Kameo 出招，不同方向是不同招式（見 Kameo 分頁）。Kameo 有自己的能量條，用完要等回復。</td></tr>
+   <tr><td>強化必殺技</td><td>必殺技指令最後加按 ${K("BL")}</td><td>招式表寫「強化：${K("BL")}」的招式可以強化，通常耗 1 格能量，威力或性質會變強。</td></tr>
+   <tr><td>Breaker</td><td>被連段時 按住 ${K("F")} + ${K("BL")}</td><td>中斷對手的連段，通常耗 2 格能量。</td></tr>
+   <tr><td>Fatal Blow</td><td>${K("FS")} + ${K("BL")}</td><td>血量 30% 以下才能用。命中後該場比賽不能再用；被擋或揮空，要等一段時間才能再用。少數角色要求 Kameo 可用。</td></tr>
+   <tr><td>挑釁</td><td>${K("D")}, ${K("D")}, ${K("D")}, ${K("D")}</td><td>Taunt</td></tr>
+  </table>
+  <h2>終結技（Finisher）</h2>
+  <div class="box">
+   <p>對手出現「<b>FINISH HIM／FINISH HER</b>」時，站在指定距離輸入指令。輸入時不用按住防禦。</p>
+   <p><span class="rng">近身</span> 貼著對手　<span class="rng">中距離</span> 約一個跳躍的距離　<span class="rng">遠距離</span> 約兩到三個跳躍　<span class="rng">任何距離</span> 隨便都可以（掃腿距離以外最穩）</p>
+   <p><b>Fatality</b>：每位角色 2 個，Kameo 另有 1 個（用 ${K("KA")} 收尾）。　<b>Animality</b>：每位角色 1 個。<br>
+   <b>Brutality</b>：不是在 FINISH HIM 時輸入，而是<b>用指定的招式打出最後一擊</b>並滿足條件（例如命中時按住某方向），預設收合在每位角色的最下方。</p>
+  </div>
+  <h2>季節限定 Fatality</h2>
+  <div class="box sub" style="margin-bottom:0">需擁有對應的季節 DLC Fatality，萬聖節、感恩節、聖誕節版本。</div>
+  <details class="sec" open><summary><span>Seasonal Fatality</span></summary><div class="rows">${seasonal}</div></details>
+  <h2>招式表符號說明</h2>
+  <table class="ct"><tr><th>寫法</th><th>意思</th></tr>
+   <tr><td>${K("D")}, ${K("F")}, ${K("FP")}</td><td>依序輸入（逗號＝接著按）</td></tr>
+   <tr><td>${K("D")} + ${K("BP")}</td><td>同時按（按住 ↓ 再按 △）</td></tr>
+   <tr><td>↳ 縮排的列</td><td>上一招的追加、變化或強化方式</td></tr>
+   <tr><td><span class="warn" style="display:inline-flex">⚠ 來源不一致</span></td><td>兩份資料寫法不同，主欄位採 MKKomplete，請到遊戲內「招式表」或練習模式確認</td></tr>
+  </table>`;
+}
+function searchPage(q){
+  const ql = q.toLowerCase();
+  const hitsC = DATA.chars.filter(c => c.name.toLowerCase().includes(ql));
+  let out = [], n = 0;
+  for (const c of DATA.chars){
+    for (const s of c.secs){
+      for (const it of s.items){
+        const t = ((it.n || "") + " " + (it.zh || "")).toLowerCase();
+        if (it.n && t.includes(ql)){
+          if (n++ < 300) out.push(`<div class="row"><div class="mn"><span class="res-c">${esc(c.name)}${c.group === "kameo" ? "（Kameo）" : ""}・${esc(s.t)}</span><br><a href="#c/${c.id}">${esc(it.n)}</a>${it.zh ? `<span class="zh">${esc(it.zh)}</span>` : ""}</div><div class="inp">${rin(it.i)}${it.r ? `<span class="rng">${rangeLabel(it.r)}</span>` : ""}</div>${it.warn ? `<div class="warn">⚠ 來源不一致：${rin(it.warn)}</div>` : ""}</div>`);
+        }
+      }
+    }
+  }
+  return `<h1>搜尋：「${esc(q)}」</h1>
+    ${hitsC.length ? `<div class="grid" style="margin:10px 0">${hitsC.map(c => `<a class="cc" href="#c/${c.id}"><div class="nm">${esc(c.name)}</div><div class="tt">${c.group === "kameo" ? "Kameo" : esc(c.title)}</div></a>`).join("")}</div>` : ""}
+    <div class="sub">招式 ${n} 筆${n > 300 ? "（只顯示前 300 筆）" : ""}</div>
+    ${out.length ? `<details class="sec" open><summary><span>招式</span></summary><div class="rows">${out.join("")}</div></details>` : `<div class="empty">找不到符合的招式。</div>`}`;
+}
+let lastView = "";
+function render(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  const q = $("#q").value.trim();
+  let view, html;
+  if (q.length >= 2){ view = "search"; html = searchPage(q); }
+  else if (h.startsWith("c/")){ view = "char"; html = charPage(h.split("/")[1]); }
+  else if (h === "controls"){ view = "controls"; const m = st.mirror; st.mirror = false; html = controlsPage(); st.mirror = m; }
+  else if (h === "kameo"){ view = "kameo"; html = listPage("kameo"); }
+  else { view = "list"; html = listPage("main"); }
+  $("#app").innerHTML = html;
+  document.querySelectorAll("nav a[data-v]").forEach(a => a.classList.toggle("on", a.dataset.v === view || (view === "char" && byId[h.split("/")[1]] && ((byId[h.split("/")[1]].group === "kameo") === (a.dataset.v === "kameo")) && a.dataset.v !== "controls")));
+  document.querySelectorAll("[data-pack]").forEach(b => b.onclick = () => { st.pack = b.dataset.pack; render(); });
+  const parts = h.split("/");
+  if (view === "char" && parts[2] !== undefined){
+    const el = document.getElementById("s" + parts[2]);
+    if (el){ el.open = true; const y = el.getBoundingClientRect().top + scrollY - $("header").offsetHeight - 46; scrollTo({top:y}); }
+  } else if (view !== lastView || view === "char") scrollTo({top:0});
+  lastView = view;
+}
+function setHdr(){ document.documentElement.style.setProperty("--hdr", $("header").offsetHeight + "px"); }
+addEventListener("hashchange", () => { $("#q").value = ""; render(); });
+addEventListener("resize", setHdr);
+$("#q").addEventListener("input", render);
+$("#mirror").onchange = e => { st.mirror = e.target.checked; localStorage.mk1mirror = st.mirror ? "1" : "0"; render(); };
+$("#zhnote").onchange = e => { st.zh = e.target.checked; localStorage.mk1zh = st.zh ? "1" : "0"; render(); };
+$("#foot").innerHTML = `資料整理自 <a href="https://icemantraveler.github.io/mkksg/mk12/default.htm" target="_blank" rel="noopener">MKKomplete</a>（${DATA.meta.src_icem} 更新）與 <a href="https://www.mortalkombatwarehouse.com/mk12/moves/special/" target="_blank" rel="noopener">Mortal Kombat Warehouse</a>（${DATA.meta.built} 取得），兩邊已交叉比對，不一致處以 ⚠ 標示。招式名稱保留遊戲英文名；Fatality／Animality 附官方繁中名稱。非官方整理，Mortal Kombat 為 Warner Bros. 商標。版本 v1（${DATA.meta.built}）。`;
+setHdr(); render();
+</script>
+</body>
+</html>
