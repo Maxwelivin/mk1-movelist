@@ -90,6 +90,31 @@ footer{max-width:1100px;margin:30px auto 40px;padding:0 14px;color:var(--dim);fo
   .cc{padding:9px 10px}.cc .nm{font-size:15px}
   .opts{gap:8px;flex-wrap:wrap}
 }
+.guide{margin:10px 14px 6px;padding:10px 12px;border:1px solid #5b4321;background:#231d12;border-radius:10px;font-size:14px}
+.guide .gt{font-weight:800;color:var(--gold);margin-bottom:6px}
+.guide p{margin:6px 0}.guide .dim,.dim{color:var(--dim);font-size:12.5px}
+.gsym{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gsym>div{background:#1c1f27;border:1px solid var(--line);border-radius:8px;padding:6px 8px;line-height:1.5}
+.gsym .big{display:inline-block;min-width:22px;font-size:22px;font-weight:900;color:var(--gold);margin-right:6px}
+.gsym small{color:var(--dim);display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px}
+.gsym .k{height:22px;min-width:22px;font-size:14px}.gsym .k svg{width:14px;height:14px}
+.bd{grid-column:1/-1;margin-top:2px}
+.bd>summary{cursor:pointer;list-style:none;display:inline-block;font-size:13px;color:#9fd3ff;padding:3px 10px;border:1px solid #2c527a;border-radius:999px;background:#18273a}
+.bd>summary::-webkit-details-marker{display:none}
+.bd[open]>summary{background:#2c527a;color:#fff}
+.steps{list-style:none;margin:8px 0 2px;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li{display:flex;gap:10px;align-items:flex-start;background:#191c23;border:1px solid #2a2f3b;border-radius:10px;padding:8px 10px}
+.sn{flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.sb{flex:1;min-width:0}
+.sk{display:flex;flex-wrap:wrap;align-items:center;gap:3px 2px}
+.sk .t{color:var(--dim);font-size:13px;margin:0 2px}.sk .t.p{margin:0}
+.sm{margin-top:4px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.sm .k{height:20px;min-width:20px;font-size:13px}
+.skind{font-size:11.5px;padding:1px 8px;border-radius:999px;background:#2a2f3c;color:var(--gold);border:1px solid #5b4321}
+.stip{margin-top:3px;font-size:12.5px;color:#cfd6e4;line-height:1.9}
+.stip .t{margin:0 1px}
+.stip .k{height:20px;min-width:20px;font-size:12px;vertical-align:middle}
+@media (max-width:640px){.gsym{grid-template-columns:1fr}}
 .fdl{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .fdl span{font-size:11.5px;padding:1px 7px;border-radius:6px;background:#262a35;color:var(--dim);border:1px solid #333948;line-height:1.6}
 .fdl .ty{font-weight:700;color:#fff}
@@ -203,12 +228,30 @@ function rowHTML(it){
   const rng = it.r ? `<span class="rng">${rangeLabel(it.r)}${it.rn ? "・" + esc(tr(it.rn)) : ""}</span>` : "";
   const warn = it.warn ? `<div class="warn">${warnHTML(it.warn)}</div>` : "";
   if (!it.i && !it.sub) return `<div class="row bh"><div class="mn">${nm}${zh}${rng}</div>${warn}</div>`;
-  return `<div class="row${it.sub ? " subr" : ""}"><div class="mn">${nm}${zh}</div><div class="inp">${rin(it.i)}${rng}${fdHTML(it.fd)}</div>${warn}</div>`;
+  return `<div class="row${it.sub ? " subr" : ""}"><div class="mn">${nm}${zh}</div><div class="inp">${rin(it.i)}${rng}${fdHTML(it.fd)}</div>${warn}${stepsHTML(it.steps)}</div>`;
+}
+function stepsHTML(steps){
+  if (!steps) return "";
+  const li = steps.map((s, k) => `<li><span class="sn">${k + 1}</span><div class="sb">
+      <div class="sk">${rin(s.i)}</div>
+      <div class="sm">${s.n ? `<b>${s.n.includes("⟦") ? rin(s.n) : esc(s.n)}</b>` :`<b class="dim">第 ${k + 1} 段</b>`}${s.k ? `<span class="skind">${esc(s.k)}</span>` : ""}</div>
+      ${s.h ? `<div class="stip">⏱ ${rin(s.h)}</div>` : ""}</div></li>`).join("");
+  return `<details class="bd"><summary>▸ 看拆解（${steps.length} 步）</summary><ol class="steps">${li}</ol></details>`;
+}
+function trialGuide(){
+  const K = v => key(DIR[v] ? "d" : "b", v);
+  return `<div class="guide"><div class="gt">🔰 新手看這裡</div>
+    <div class="gsym"><div><span class="big">,</span>一個接一個按<br><small>${K("BP")} , ${K("FP")} ＝先按前一個，馬上再按下一個</small></div>
+    <div><span class="big">+</span>同時按<br><small>${K("F")} + ${K("FK")} ＝按住方向的同時按攻擊鍵</small></div>
+    <div><span class="big lk">»</span>打中後接下一段<br><small>前一段打到對手，就馬上做下一段</small></div></div>
+    <p><b>（空中）</b>＝自己跳在空中、還沒落地時出的招。${K("KA")}＝叫 Kameo，請用遊戲教學指定的 Kameo。</p>
+    <p><b>練法</b>：① 點「看拆解」看每一步是什麼招 → ② 在練習模式把每一步單獨練熟（尤其是必殺技）→ ③ 先接前兩段，穩了再加第三段，一段一段往後加。</p>
+    <p class="dim">方向以角色在左邊、面向右為準；在右邊時勾選上方「面向左」。</p></div>`;
 }
 function secHTML(s, idx, open){
   const n = s.items.filter(x => !x.sub && !x.h && x.n).length;
   return `<details class="sec" id="s${idx}" ${open ? "open" : ""}><summary><span>${esc(s.t)}<span class="cnt">${n} 項</span></span></summary>` +
-    (s.note ? `<div class="snote">${rin(s.note)}</div>` : "") +
+    (s.k === "trial" ? trialGuide() : s.note ? `<div class="snote">${rin(s.note)}</div>` : "") +
     `<div class="rows">${s.items.map(rowHTML).join("")}</div></details>`;
 }
 function charPage(id){
@@ -313,7 +356,7 @@ function controlsPage(){
   <h2>怎麼練連段</h2>
   <div class="box">
    <p>每位角色頁的「<b>連段挑戰（教學模式）</b>」就是遊戲主選單 <b>Learn</b> 裡、各角色教學的 Kombo Challenge，由簡單到難排列。</p>
-   <p>1. 先在 <b>Practice</b>（練習模式）把連段裡用到的必殺技單獨練到每次都出得來。　2. 再一段一段接：看到 <span class="lk" style="color:var(--gold);font-weight:800">»</span> 就是「前一招打中後馬上接下一段」。　3. 寫「空中」的段落要在對手被打飛到空中時接。</p>
+   <p>1. 先在 <b>Practice</b>（練習模式）把連段裡用到的必殺技單獨練到每次都出得來。　2. 再一段一段接：看到 <span class="lk" style="color:var(--gold);font-weight:800">»</span> 就是「前一招打中後馬上接下一段」。　3. 標「（空中）」的段落，是<b>自己跳在空中、還沒落地時</b>出的招（空中版必殺技）。　4. 每組連段都可以點「看拆解」，會一步一步寫出招式名稱和什麼時候按。</p>
    <p>用到 ${K("KA")} 的連段需要特定 Kameo，請照遊戲教學畫面指定的 Kameo 練。換邊（交換左右位置）之後，${K("F")} ${K("B")} 會跟著角色面向改變。</p>
   </div>
   <h2>練習模式（Practice）可以用的功能</h2>

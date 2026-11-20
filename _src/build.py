@@ -250,8 +250,123 @@ for c in chars:
 (SRC / "frames_match_report.txt").write_text("\n".join(bad_log), encoding="utf-8")
 print(f"frame data attached: {fd_hit} rows; name matched but input differs (not attached): {fd_badinput}")
 
+# ---- v4: step-by-step breakdown of every Kombo Challenge ----
+KIND_LABEL = {"special": "必殺技", "fatalblow": "Fatal Blow", "basic": "普通技", "kombo": "招式串",
+              "air": "跳躍攻擊", "airkombo": "空中招式串", "throw": "投技"}
+AIR_KINDS = {"air", "airkombo"}
+
+
+def seg_toks(s):
+    return tuple(re.findall(r"⟦[db]:(\w+)⟧", s))
+
+
+def move_index(c):
+    idx = {}
+    for s in c["secs"]:
+        if s["k"] not in KIND_LABEL:
+            continue
+        for it in s["items"]:
+            if not it.get("n") or not it.get("i"):
+                continue
+            body = re.sub(r"\([^()]*\)", lambda m: m.group(0) if not re.search(
+                r"[A-Za-z一-鿿]{2}", re.sub(r"⟦[db]:\w+⟧", "", m.group(0))) else "", it["i"])
+            alts = body.split(" / ")  # "TH / (FP + FK)" style alternatives
+            m2 = re.search(r"⟦b:(\w+)⟧/⟦b:(\w+)⟧", body)  # "(UF + FK/BK)": either button
+            if m2:
+                alts = [body.replace(m2.group(0), f"⟦b:{m2.group(1)}⟧"), body.replace(m2.group(0), f"⟦b:{m2.group(2)}⟧")]
+            alts += [a.replace("⟦b:TH⟧", "⟦b:FP⟧ + ⟦b:FK⟧") for a in alts if "⟦b:TH⟧" in a]  # throw-ender strings
+            for alt in alts:
+                t = seg_toks(alt)
+                if t:
+                    idx.setdefault(t, []).append((it["n"], s["k"], it.get("i", "")))
+                    if t[0] in ("UF", "U"):  # air kombos are often written without the jump direction
+                        idx.setdefault(t[1:], []).append((it["n"], s["k"], it.get("i", "")))
+    return idx
+
+
+def pick_move(idx, t, in_air):
+    cands = idx.get(t, [])
+    if not cands:
+        return None
+    def score(m):
+        n, k, inp = m
+        air = k in AIR_KINDS or "(Air)" in n or "Air" in inp or "空中" in inp
+        return (0 if air == in_air else 1, ["special", "kombo", "basic", "air", "airkombo", "throw", "fatalblow"].index(k))
+    return sorted(cands, key=score)[0]
+
+
+steps_total = steps_named = 0
+for c in chars:
+    if c["group"] != "main":
+        continue
+    idx = move_index(c)
+    trial = next((s for s in c["secs"] if s["k"] == "trial"), None)
+    if not trial:
+        continue
+    for it in trial["items"]:
+        steps, prev_kind = [], None
+        for k, seg in enumerate(it["i"].split(" » ")):
+            seg = seg.strip()
+            text = re.sub(r"⟦[db]:\w+⟧|[,+/]", " ", seg)
+            in_air = "(Air)" in text or "While In Air" in text
+            t = seg_toks(seg)
+            st = {"i": seg}
+            enhanced = "BL" in t and len(t) > 2
+            core = tuple(x for x in t if x != "BL") if enhanced else t
+            m = None
+            if "KA" in t:
+                st["k"], st["n"] = "Kameo", "叫 Kameo 出招"
+            elif t == ("FS", "BL"):
+                st["k"] = "Fatal Blow"
+            elif t == ("F", "F"):
+                st["k"], st["n"] = "移動", "前衝（快速按兩下 ⟦d:F⟧）"
+            elif t == ("B", "B"):
+                st["k"], st["n"] = "移動", "後撤（快速按兩下 ⟦d:B⟧）"
+            elif len(t) == 2 and t[0] == "U" and t[1] in ("FP", "BP", "FK", "BK") and not in_air:
+                st["k"], st["n"] = "跳躍攻擊", "原地往上跳，在空中按攻擊鍵"
+            else:
+                jump = bool(core) and core[0] in ("UF", "U", "UB")
+                m = pick_move(idx, core, in_air) or pick_move(idx, t, in_air)
+                if not m and jump and len(core) > 2:
+                    m = pick_move(idx, core[1:], True)
+                if m and jump and m[1] not in AIR_KINDS:  # a jump input can only be an air move
+                    m = None
+                if m:
+                    st["n"] = re.sub(r"^\(Air\)\s*", "", m[0])
+                    st["k"] = KIND_LABEL[m[1]]
+                    if k > 0 and m[1] == "air" and prev_kind not in AIR_KINDS:
+                        st["k"] = "空中追打"
+            if enhanced and st.get("k") == "必殺技":
+                st["k"] = "必殺技（強化版）"
+            kind = m[1] if m else ("kameo" if st.get("k") == "Kameo" else None)
+            # when to press it
+            if in_air:
+                hint = "自己還在空中（跳起來還沒落地）時輸入"
+            elif k == 0:
+                hint = ""
+            elif prev_kind in AIR_KINDS and kind not in AIR_KINDS:
+                hint = "落地後馬上按"
+            elif kind in AIR_KINDS:
+                hint = "前一招打中後跳起來，在空中出這段"
+            elif kind == "special" and prev_kind in ("basic", "kombo"):
+                hint = "前一招打到的瞬間就輸入（不用等動作做完）"
+            elif kind == "kameo":
+                hint = "前一段打中後叫出 Kameo"
+            else:
+                hint = "前一段打中後馬上接"
+            if enhanced and kind == "special":
+                hint = (hint + "；" if hint else "") + "最後加按 ⟦b:BL⟧，耗 1 格能量"
+            if hint:
+                st["h"] = hint
+            steps.append(st)
+            steps_total += 1
+            steps_named += bool(st.get("n") or st.get("k"))
+            prev_kind = kind
+        it["steps"] = steps
+print(f"trial steps: {steps_named}/{steps_total} identified")
+
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v3", "fd_count": fd_hit}
+        "src_icem": "2026-03-15", "version": "v4", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
