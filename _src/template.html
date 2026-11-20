@@ -67,6 +67,7 @@ summary .cnt{font-weight:400;color:var(--dim);font-size:12px;margin-left:8px}
 .k svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linejoin:round;stroke-linecap:round}
 .warn .k svg{width:14px;height:14px}
 .inp .t.p{margin:0;font-size:14px}
+.inp .lk{color:var(--gold);font-weight:800;margin:0 6px;font-size:15px}
 .k.sh{font-size:12px;min-width:30px;border-radius:999px;color:#ddd;background:#343a49}
 .rng{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:#3a2a17;color:var(--gold);margin-left:6px;border:1px solid #5b4321}
 .warn{grid-column:1/-1;font-size:12.5px;color:#ffcf7a;background:#3a2c12;border:1px solid #6b5220;border-radius:8px;padding:4px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:3px}
@@ -135,7 +136,8 @@ const TR = [
   [/Costs (\d) Bars? of Super Meter/g,"耗 $1 格能量"],[/Uses Meter/g,"耗能量"],[/Super Meter/g,"能量"],
   [/Must Be Full Screen/g,"須在全畫面距離"],[/Must Kill With Full Kombo/g,"須以完整連段擊殺"],
   [/Requires /g,"需要 "],[/\bDuring ([^()\[\],]+?)(?=$|[)\],])/g,"$1 期間"],
-  [/\bClose\b/g,"近"],[/\bFar\b/g,"遠"],[/\bAway\b/g,"往後"],[/\bToward\b/g,"往前"],[/But not beside/g,"但不要貼身"]
+  [/\bClose\b/g,"近"],[/\bFar\b/g,"遠"],[/\bAway\b/g,"往後"],[/\bToward\b/g,"往前"],[/But not beside/g,"但不要貼身"],
+  [/\bRelease\b/g,"放開"],[/\(Flight\)/g,"（飛行中）"],[/\(Setup\)/g,"（先佈置）"],[/\(Miss\)/g,"（故意揮空）"],[/While Prone/g,"倒地時"],[/\bx(\d+)\b/g,"×$1"],[/\(While In Air\)/g,"（空中）"]
 ];
 const RNG = {Close:"近",Mid:"中",Far:"遠","Very Far":"極遠",Anywhere:"任何",Jump:"一跳",Fullscreen:"全畫面"};
 function rangeLabel(r){
@@ -153,8 +155,11 @@ function rin(s){
   const p = s.split(/⟦([db]):(\w+)⟧/);
   let o = "";
   for (let i = 0; i < p.length; i += 3){
-    const t = tr(p[i]).trim();
-    if (t) o += `<span class="t${/^[()\[\],:：+\-–\s]+$/.test(t) ? " p" : ""}">${esc(t.replace(/\s*:$/, "："))}</span>`;
+    tr(p[i]).split("»").forEach((seg, j) => {
+      if (j) o += `<span class="lk">»</span>`;
+      const t = seg.trim();
+      if (t) o += `<span class="t${/^[()\[\],:：+\-–\s]+$/.test(t) ? " p" : ""}">${esc(t.replace(/\s*:$/, "："))}</span>`;
+    });
     if (i + 2 < p.length) o += key(p[i+1], p[i+2]);
   }
   return o;
@@ -163,12 +168,13 @@ const PACK = {base:"本體", kp1:"Kombat Pack 1", kp2:"Kombat Pack 2"};
 const PACK_MAIN = {base:"本體", kp1:"Kombat Pack 1", kp2:"Khaos Reigns／Kombat Pack 2"};
 const byId = Object.fromEntries(DATA.chars.map(c => [c.id, c]));
 
+const warnHTML = w => (w.startsWith("方向") ? "⚠ " : "⚠ 來源不一致：") + rin(w);
 function rowHTML(it){
   if (it.h) return `<div class="row hd">${esc(tr(it.h))}</div>`;
   const nm = it.n ? esc(it.n) : "";
   const zh = it.zh ? `<span class="zh">${esc(it.zh)}</span>` : "";
   const rng = it.r ? `<span class="rng">${rangeLabel(it.r)}${it.rn ? "・" + esc(tr(it.rn)) : ""}</span>` : "";
-  const warn = it.warn ? `<div class="warn">⚠ 來源不一致：${rin(it.warn)}</div>` : "";
+  const warn = it.warn ? `<div class="warn">${warnHTML(it.warn)}</div>` : "";
   if (!it.i && !it.sub) return `<div class="row bh"><div class="mn">${nm}${zh}${rng}</div>${warn}</div>`;
   return `<div class="row${it.sub ? " subr" : ""}"><div class="mn">${nm}${zh}</div><div class="inp">${rin(it.i)}${rng}</div>${warn}</div>`;
 }
@@ -263,10 +269,17 @@ function controlsPage(){
   <h2>季節限定 Fatality</h2>
   <div class="box sub" style="margin-bottom:0">需擁有對應的季節 DLC Fatality，萬聖節、感恩節、聖誕節版本。</div>
   <details class="sec" open><summary><span>Seasonal Fatality</span></summary><div class="rows">${seasonal}</div></details>
+  <h2>怎麼練連段</h2>
+  <div class="box">
+   <p>每位角色頁的「<b>連段挑戰（教學模式）</b>」就是遊戲主選單 <b>Learn</b> 裡、各角色教學的 Kombo Challenge，由簡單到難排列。</p>
+   <p>1. 先在 <b>Practice</b>（練習模式）把連段裡用到的必殺技單獨練到每次都出得來。　2. 再一段一段接：看到 <span class="lk" style="color:var(--gold);font-weight:800">»</span> 就是「前一招打中後馬上接下一段」。　3. 寫「空中」的段落要在對手被打飛到空中時接。</p>
+   <p>用到 ${K("KA")} 的連段需要特定 Kameo，請照遊戲教學畫面指定的 Kameo 練。換邊（交換左右位置）之後，${K("F")} ${K("B")} 會跟著角色面向改變。</p>
+  </div>
   <h2>招式表符號說明</h2>
   <table class="ct"><tr><th>寫法</th><th>意思</th></tr>
    <tr><td>${K("D")}, ${K("F")}, ${K("FP")}</td><td>依序輸入（逗號＝接著按）</td></tr>
    <tr><td>${K("D")} + ${K("BP")}</td><td>同時按（按住 ↓ 再按 △）</td></tr>
+   <tr><td><span class="lk" style="color:var(--gold);font-weight:800">»</span></td><td>連段中「打中後馬上接下一段」</td></tr>
    <tr><td>↳ 縮排的列</td><td>上一招的追加、變化或強化方式</td></tr>
    <tr><td><span class="warn" style="display:inline-flex">⚠ 來源不一致</span></td><td>兩份資料寫法不同，主欄位採 MKKomplete，請到遊戲內「招式表」或練習模式確認</td></tr>
   </table>`;
@@ -280,7 +293,7 @@ function searchPage(q){
       for (const it of s.items){
         const t = ((it.n || "") + " " + (it.zh || "")).toLowerCase();
         if (it.n && t.includes(ql)){
-          if (n++ < 300) out.push(`<div class="row"><div class="mn"><span class="res-c">${esc(c.name)}${c.group === "kameo" ? "（Kameo）" : ""}・${esc(s.t)}</span><br><a href="#c/${c.id}">${esc(it.n)}</a>${it.zh ? `<span class="zh">${esc(it.zh)}</span>` : ""}</div><div class="inp">${rin(it.i)}${it.r ? `<span class="rng">${rangeLabel(it.r)}</span>` : ""}</div>${it.warn ? `<div class="warn">⚠ 來源不一致：${rin(it.warn)}</div>` : ""}</div>`);
+          if (n++ < 300) out.push(`<div class="row"><div class="mn"><span class="res-c">${esc(c.name)}${c.group === "kameo" ? "（Kameo）" : ""}・${esc(s.t)}</span><br><a href="#c/${c.id}">${esc(it.n)}</a>${it.zh ? `<span class="zh">${esc(it.zh)}</span>` : ""}</div><div class="inp">${rin(it.i)}${it.r ? `<span class="rng">${rangeLabel(it.r)}</span>` : ""}</div>${it.warn ? `<div class="warn">${warnHTML(it.warn)}</div>` : ""}</div>`);
         }
       }
     }
@@ -316,7 +329,7 @@ addEventListener("resize", setHdr);
 $("#q").addEventListener("input", render);
 $("#mirror").onchange = e => { st.mirror = e.target.checked; localStorage.mk1mirror = st.mirror ? "1" : "0"; render(); };
 $("#zhnote").onchange = e => { st.zh = e.target.checked; localStorage.mk1zh = st.zh ? "1" : "0"; render(); };
-$("#foot").innerHTML = `資料整理自 <a href="https://icemantraveler.github.io/mkksg/mk12/default.htm" target="_blank" rel="noopener">MKKomplete</a>（${DATA.meta.src_icem} 更新）與 <a href="https://www.mortalkombatwarehouse.com/mk12/moves/special/" target="_blank" rel="noopener">Mortal Kombat Warehouse</a>（${DATA.meta.built} 取得），兩邊已交叉比對，不一致處以 ⚠ 標示。招式名稱保留遊戲英文名；Fatality／Animality 附官方繁中名稱。非官方整理，Mortal Kombat 為 Warner Bros. 商標。版本 v1（${DATA.meta.built}）。`;
+$("#foot").innerHTML = `資料整理自 <a href="https://icemantraveler.github.io/mkksg/mk12/default.htm" target="_blank" rel="noopener">MKKomplete</a>（${DATA.meta.src_icem} 更新）與 <a href="https://www.mortalkombatwarehouse.com/mk12/moves/special/" target="_blank" rel="noopener">Mortal Kombat Warehouse</a>（${DATA.meta.built} 取得），兩邊已交叉比對，不一致處以 ⚠ 標示。招式名稱保留遊戲英文名；Fatality／Animality 附官方繁中名稱。非官方整理，Mortal Kombat 為 Warner Bros. 商標。連段挑戰整理自 <a href="https://altarofgaming.com/character/scorpion/mortal-kombat-1/moves/" target="_blank" rel="noopener">Altar of Gaming</a>（${DATA.meta.built} 取得）。版本 ${DATA.meta.version}（${DATA.meta.built}）。`;
 setHdr(); render();
 </script>
 </body>

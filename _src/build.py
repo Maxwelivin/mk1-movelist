@@ -65,6 +65,25 @@ def finisher_key(name, is_kameo):
     return m.group(1) if m else None
 
 
+trials = json.loads((SRC / "trials.json").read_text(encoding="utf-8"))
+TRIAL_NOTE = ("遊戲「Learn」教學中每位角色的 Kombo Challenge。» ＝前一招打中後馬上接下一段；"
+              "⟦b:KA⟧ 是 Kameo 招式，請用遊戲教學指定的 Kameo 練。")
+# trials whose directions are written as on-screen presses after a side switch (found by parse_trials.py)
+TRIAL_FLAGS = [
+    ("ashrah", "連段 6", "方向疑似左右相反：整組照「角色在右邊、面向左」的實際按法寫。照本站面向右的寫法，← → 要全部對調"
+     "（例如 ⟦d:D⟧, ⟦d:F⟧, ⟦b:BP⟧ 應為 God's Wrath ⟦d:D⟧, ⟦d:B⟧, ⟦b:BP⟧）。請在遊戲中確認。"),
+    ("sindel", "連段 6", "方向疑似左右相反：⟦d:F⟧ + ⟦b:KA⟧ 之後雙方換邊，後半段是換邊後的實際按法"
+     "（⟦d:D⟧, ⟦d:F⟧, ⟦b:BP⟧ 應為 Levitate ⟦d:D⟧, ⟦d:B⟧, ⟦b:BP⟧）。請在遊戲中確認。"),
+]
+for cid, name, msg in TRIAL_FLAGS:
+    hit = [t for t in trials[cid] if t["n"] == name and t.get("chk")]
+    if len(hit) != 1:
+        raise SystemExit(f"trial flag not matched: {cid} {name}")
+    hit[0]["warn"] = msg
+unflagged = [(k, t["n"]) for k, v in trials.items() for t in v if t.get("chk") and not t.get("warn")]
+if unflagged:
+    raise SystemExit(f"trials with unmatched motions but no flag: {unflagged}")
+
 chars = []
 for c in data["chars"]:
     if c["group"] == "hidden":
@@ -103,6 +122,9 @@ for c in data["chars"]:
         if s.get("note"):
             sec["note"] = s["note"]
         secs.append(sec)
+    if c["id"] in trials:
+        secs.append({"k": "trial", "t": "連段挑戰（教學模式）", "o": 25, "note": TRIAL_NOTE,
+                     "items": [{k: t[k] for k in ("n", "i", "warn") if k in t} for t in trials[c["id"]]]})
     secs.sort(key=lambda x: x["o"])
     for s in secs:
         s.pop("o")
@@ -132,7 +154,7 @@ for cid, name, sub, msg in FLAGS:
 print("flags applied:", applied)
 
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15"}
+        "src_icem": "2026-03-15", "version": "v2"}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
