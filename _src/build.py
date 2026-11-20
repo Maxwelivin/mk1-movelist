@@ -153,8 +153,105 @@ for cid, name, sub, msg in FLAGS:
     applied += hits
 print("flags applied:", applied)
 
+# ---- v3: per-move hit type / frame data / Easy Fatality from Altar of Gaming ----
+frames = json.loads((SRC / "frames.json").read_text(encoding="utf-8"))
+FD_KINDS = {"special", "fatalblow", "basic", "kombo", "air", "airkombo", "throw"}
+SKIP_CATS = {"move-category-52", "move-category-53", "move-category-54"}  # finishers, brutalities, trials
+
+
+def nkey(n):
+    n = re.sub(r"^\((?:air|air close|close|far|mid)\)\s*", "", n.strip().lower())
+    n = re.sub(r"(\s*\([^()]*\))+$", "", n)  # AoG stance suffixes: "(Sento Stance)", "(No Axe)"
+    n = re.sub(r"[^a-z0-9]", "", n)
+    return NAME_ALIAS.get(n, n)
+
+
+# spelling differences between MKKomplete and AoG (General Shao)
+NAME_ALIAS = {"superioritycomplex": "superioritykomplex", "superiorkomplex": "superioritykomplex",
+              "harmstring": "hamstring"}
+
+
+def stance_rank(sec_title, aog_name):
+    """0 when the AoG stance suffix matches the section's stance variant, else 1."""
+    tag = " ".join(re.findall(r"\(([^()]*)\)\s*$", aog_name)).lower()
+    want = "sento" if "Sento" in sec_title else "no axe" if "Without Axe" in sec_title else ""
+    return 0 if (want and want in tag) or (not want and ("sento" not in tag and "no axe" not in tag)) else 1
+
+
+def toks(s, outer_only):
+    if outer_only:  # drop parenthesised notes such as (Enhance: R2) but keep (D + FP)
+        s = re.sub(r"\([^()]*\)", lambda m: m.group(0) if not re.search(
+            r"[A-Za-z一-鿿]{2}", re.sub(r"⟦[db]:\w+⟧", "", m.group(0))) else "", s)
+    out = []
+    for t in re.findall(r"⟦[db]:(\w+)⟧", s):
+        if t == "TH":  # throw button == FP + FK
+            out += ["FP", "FK"]
+        elif t != "BL":
+            out.append(t)
+    return out
+
+
+fd_hit = fd_badinput = 0
+bad_log = []
+for c in chars:
+    if c["group"] != "main":
+        continue
+    recs = [r for r in frames.get(c["id"], []) if r["cat"] not in SKIP_CATS and "type" in r]
+    by = {}
+    for r in recs:
+        if r["n"].lower().startswith("enhanced") or " enhanced " in r["n"].lower():
+            continue
+        by.setdefault(nkey(r["n"]), []).append(r)
+    for s in c["secs"]:
+        if s["k"] not in FD_KINDS:
+            continue
+        for it in s["items"]:
+            if not it.get("n") or "fd" in it:
+                continue
+            cands = sorted(by.get(nkey(it["n"]), []), key=lambda r: stance_rank(s["t"], r["n"]))
+            mine = toks(it.get("i", ""), True)
+            pick = None
+            for r in cands:
+                theirs = toks(r["i"], False)
+                if theirs and (mine[:len(theirs)] == theirs or theirs[:len(mine)] == mine):
+                    pick = r
+                    break
+            if not pick:  # air moves: sources differ only in writing the jump direction (↗ / ↑) or not
+                strip = lambda xs: [x for x in xs if x not in ("U", "UF")]
+                for r in cands:
+                    a, b = strip(mine), strip(toks(r["i"], False))
+                    if a and (a == b):
+                        pick = r
+                        break
+            if cands and not pick:
+                fd_badinput += 1
+                r = cands[0]
+                bad_log.append(f"{c['id']:<16} {it['n']:<28} mine={' '.join(mine)}  aog={[' '.join(toks(r['i'], False)) for r in cands]}")
+                note = "Altar of Gaming 寫作 " + r["i"]
+                it["warn"] = (it["warn"] + "；另外 " + note) if it.get("warn") else note
+            if pick:
+                fd = {"t": pick["type"]}
+                for k in ("su", "blk", "pb", "dmg"):
+                    if pick.get(k):
+                        fd[k] = pick[k]
+                if pick.get("cxl") and s["k"] in ("basic", "kombo", "air", "airkombo"):
+                    fd["cx"] = 1
+                it["fd"] = fd
+                fd_hit += 1
+    # Easy Fatality rows (first one is the standard; extra ones are unlabeled in the source)
+    efs = [r for r in frames.get(c["id"], []) if r["n"] == "Easy Fatality"]
+    fin = next((s for s in c["secs"] if s["k"] == "finish"), None)
+    for k, r in enumerate(efs):
+        row = {"n": "Easy Fatality", "i": r["i"], "zh": "簡易終結技（需代幣）"}
+        if k:
+            row["n"] = f"Easy Fatality（第 {k + 1} 筆）"
+            row["warn"] = "!來源未註明這一筆的用途（排在 Animality 或另一個 Fatality 後面），請在遊戲招式表確認。"
+        fin["items"].append(row)
+(SRC / "frames_match_report.txt").write_text("\n".join(bad_log), encoding="utf-8")
+print(f"frame data attached: {fd_hit} rows; name matched but input differs (not attached): {fd_badinput}")
+
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v2"}
+        "src_icem": "2026-03-15", "version": "v3", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)

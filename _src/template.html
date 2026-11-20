@@ -88,7 +88,15 @@ footer{max-width:1100px;margin:30px auto 40px;padding:0 14px;color:var(--dim);fo
   .logo{font-size:16px}
   nav a{padding:4px 10px}
   .cc{padding:9px 10px}.cc .nm{font-size:15px}
+  .opts{gap:8px;flex-wrap:wrap}
 }
+.fdl{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.fdl span{font-size:11.5px;padding:1px 7px;border-radius:6px;background:#262a35;color:var(--dim);border:1px solid #333948;line-height:1.6}
+.fdl .ty{font-weight:700;color:#fff}
+.ty.hi{background:#1d3550;border-color:#2c527a}.ty.mi{background:#4a3d14;border-color:#74601f}.ty.lo{background:#4d1f24;border-color:#7a2f37}
+.ty.oh{background:#3c2452;border-color:#5f3a80}.ty.th{background:#24443a;border-color:#356657}.ty.ub{background:#555;border-color:#777}
+.fdl .pos{color:#7fe0a8}.fdl .mid{color:#e8c66a}.fdl .neg{color:#ff8a8a}
+.fdl .cx{color:#9fd3ff;border-color:#2c527a}
 </style>
 </head>
 <body>
@@ -104,6 +112,7 @@ footer{max-width:1100px;margin:30px auto 40px;padding:0 14px;color:var(--dim);fo
     <div class="opts">
       <label title="角色在右邊、面向左時，把 ← → 對調顯示"><input type="checkbox" id="mirror">面向左</label>
       <label title="把 Enhance、Hold 等說明翻成中文"><input type="checkbox" id="zhnote" checked>說明中文</label>
+      <label title="顯示發生幀、被擋後有利/不利、傷害"><input type="checkbox" id="fdon" checked>幀數</label>
     </div>
   </div>
 </header>
@@ -113,8 +122,8 @@ footer{max-width:1100px;margin:30px auto 40px;padding:0 14px;color:var(--dim);fo
 const DATA = /*__DATA__*/null;
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const st = {mirror: localStorage.mk1mirror === "1", zh: localStorage.mk1zh !== "0", pack: "all"};
-$("#mirror").checked = st.mirror; $("#zhnote").checked = st.zh;
+const st = {mirror: localStorage.mk1mirror === "1", zh: localStorage.mk1zh !== "0", fd: localStorage.mk1fd !== "0", pack: "all"};
+$("#mirror").checked = st.mirror; $("#zhnote").checked = st.zh; $("#fdon").checked = st.fd;
 
 const SV = b => `<svg viewBox="0 0 20 20" aria-hidden="true">${b}</svg>`;
 const BTN = {
@@ -168,7 +177,25 @@ const PACK = {base:"本體", kp1:"Kombat Pack 1", kp2:"Kombat Pack 2"};
 const PACK_MAIN = {base:"本體", kp1:"Kombat Pack 1", kp2:"Khaos Reigns／Kombat Pack 2"};
 const byId = Object.fromEntries(DATA.chars.map(c => [c.id, c]));
 
-const warnHTML = w => (w.startsWith("方向") ? "⚠ " : "⚠ 來源不一致：") + rin(w);
+const warnHTML = w => w.startsWith("!") ? "⚠ " + rin(w.slice(1)) : (w.startsWith("方向") ? "⚠ " : "⚠ 來源不一致：") + rin(w);
+const HT = {High:["上段","hi"],Mid:["中段","mi"],Low:["下段","lo"],Overhead:["下壓","oh"],Throw:["投技","th"],Unblockable:["不可防","ub"]};
+const sgn = v => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v);
+function fdHTML(fd){
+  if (!fd) return "";
+  const [lab, cls] = HT[fd.t] || [fd.t, ""];
+  let o = `<span class="ty ${cls}">${lab}</span>`;
+  if (st.fd){
+    if (fd.su) o += `<span class="fn">發生 ${esc(fd.su)}</span>`;
+    if (fd.blk !== undefined && fd.blk !== ""){
+      const b = parseInt(fd.blk, 10);
+      o += `<span class="fn ${b >= 0 ? "pos" : b <= -7 ? "neg" : "mid"}">被擋 ${sgn(b)}</span>`;
+      if (fd.pb && parseInt(fd.pb, 10) !== b) o += `<span class="fn">完美擋 ${sgn(parseInt(fd.pb, 10))}</span>`;
+    }
+    if (fd.dmg) o += `<span class="fn">傷害 ${+parseFloat(fd.dmg).toFixed(1)}</span>`;
+  }
+  if (fd.cx) o += `<span class="cx">可接必殺</span>`;
+  return `<div class="fdl">${o}</div>`;
+}
 function rowHTML(it){
   if (it.h) return `<div class="row hd">${esc(tr(it.h))}</div>`;
   const nm = it.n ? esc(it.n) : "";
@@ -176,7 +203,7 @@ function rowHTML(it){
   const rng = it.r ? `<span class="rng">${rangeLabel(it.r)}${it.rn ? "・" + esc(tr(it.rn)) : ""}</span>` : "";
   const warn = it.warn ? `<div class="warn">${warnHTML(it.warn)}</div>` : "";
   if (!it.i && !it.sub) return `<div class="row bh"><div class="mn">${nm}${zh}${rng}</div>${warn}</div>`;
-  return `<div class="row${it.sub ? " subr" : ""}"><div class="mn">${nm}${zh}</div><div class="inp">${rin(it.i)}${rng}</div>${warn}</div>`;
+  return `<div class="row${it.sub ? " subr" : ""}"><div class="mn">${nm}${zh}</div><div class="inp">${rin(it.i)}${rng}${fdHTML(it.fd)}</div>${warn}</div>`;
 }
 function secHTML(s, idx, open){
   const n = s.items.filter(x => !x.sub && !x.h && x.n).length;
@@ -243,6 +270,13 @@ function controlsPage(){
   <table class="ct"><tr><th>輸入</th><th>說明</th></tr>
    <tr><td>按住 ${K("BL")}</td><td>站立防禦：擋上段（High）、中段（Mid）、下壓技（Overhead）。擋不住下段（Low）。</td></tr>
    <tr><td>${K("D")} + 按住 ${K("BL")}</td><td>蹲下防禦：擋中段、下段。擋不住下壓技（Overhead）。上段攻擊蹲下就能閃過。</td></tr>
+   <tr><td>投技、不可防</td><td>防禦擋不住：投技要破投（見下一節），標「不可防」的招式要閃開或先打斷。</td></tr>
+   <tr><td>完美防禦<br>（Flawless Block）</td><td>不要一直按住防禦，而是在對手攻擊<b>打到的那一瞬間</b>才按 ${K("BL")}。成功的話削血（擋下仍會扣的少量血）大幅減少；部分招式被完美防禦後，對手會更不利（招式表的「完美擋」數字）。MK1 的完美防禦<b>沒有附帶反擊動作</b>。確切的時機（幾幀內）我沒有查到可靠來源。</td></tr>
+  </table>
+  <h2>倒地與起身</h2>
+  <table class="ct"><tr><th>輸入</th><th>說明</th></tr>
+   <tr><td>倒地時 按住 ${K("FS")}</td><td>延遲起身：多躺一下再起來，讓對手壓起身的時機落空。延遲起身時不能出起身攻擊。</td></tr>
+   <tr><td>起身瞬間輸入必殺技</td><td>起身攻擊（反擊）：角色快站起來時輸入任一必殺技指令，起身就會出招，一般版不耗能量。強化版（有霸體或無敵的）要耗能量。</td></tr>
   </table>
   <h2>投技與破投</h2>
   <table class="ct"><tr><th>輸入</th><th>說明</th></tr>
@@ -255,16 +289,23 @@ function controlsPage(){
   <table class="ct"><tr><th>名稱</th><th>輸入</th><th>說明</th></tr>
    <tr><td>Kameo 助攻</td><td>${K("KA")}；${K("F")}／${K("B")}／${K("D")}／${K("U")} + ${K("KA")}</td><td>叫出 Kameo 出招，不同方向是不同招式（見 Kameo 分頁）。Kameo 有自己的能量條，用完要等回復。</td></tr>
    <tr><td>強化必殺技</td><td>必殺技指令最後加按 ${K("BL")}</td><td>招式表寫「強化：${K("BL")}」的招式可以強化，通常耗 1 格能量，威力或性質會變強。</td></tr>
-   <tr><td>Breaker</td><td>被連段時 按住 ${K("F")} + ${K("BL")}</td><td>中斷對手的連段，通常耗 2 格能量。</td></tr>
+   <tr><td>Breaker</td><td>被連段時 ${K("F")} + ${K("BL")}</td><td>叫 Kameo 把對手撞開，中斷連段。<b>耗 3 格能量（整條）</b>，而且 Kameo 必須可用：Kameo 正在場上出招時不能用。</td></tr>
    <tr><td>Fatal Blow</td><td>${K("FS")} + ${K("BL")}</td><td>血量 30% 以下才能用。命中後該場比賽不能再用；被擋或揮空，要等一段時間才能再用。少數角色要求 Kameo 可用。</td></tr>
    <tr><td>挑釁</td><td>${K("D")}, ${K("D")}, ${K("D")}, ${K("D")}</td><td>Taunt</td></tr>
   </table>
+  <h2>能量條</h2>
+  <div class="box">
+   <p><b>能量條（Super Meter）</b>：畫面下方、自己血條那一側，共 <b>3 格</b>。出必殺技、打中對手、必殺技被擋下都會累積。</p>
+   <p>用途：強化必殺技通常 1 格（少數 2 格）；Breaker 3 格。</p>
+   <p><b>Kameo 能量條</b>：叫 Kameo 出招會消耗，之後會隨時間回復；回復前不能再叫 Kameo，也不能用 Breaker。每招消耗多少我沒有查到一致的資料。</p>
+  </div>
   <h2>終結技（Finisher）</h2>
   <div class="box">
    <p>對手出現「<b>FINISH HIM／FINISH HER</b>」時，站在指定距離輸入指令。輸入時不用按住防禦。</p>
    <p><span class="rng">近身</span> 貼著對手　<span class="rng">中距離</span> 約一個跳躍的距離　<span class="rng">遠距離</span> 約兩到三個跳躍　<span class="rng">任何距離</span> 隨便都可以（掃腿距離以外最穩）</p>
    <p><b>Fatality</b>：每位角色 2 個，Kameo 另有 1 個（用 ${K("KA")} 收尾）。　<b>Animality</b>：每位角色 1 個。<br>
    <b>Brutality</b>：不是在 FINISH HIM 時輸入，而是<b>用指定的招式打出最後一擊</b>並滿足條件（例如命中時按住某方向），預設收合在每位角色的最下方。</p>
+   <p><b>Easy Fatality</b>（簡易終結技）：不用背指令，FINISH HIM 時按兩個鍵就能出 Fatality，但每次要消耗 1 個 Easy Fatality 代幣（遊戲商店用 Dragon Krystals 購買）。大部分角色是 ${K("FK")} + ${K("BL")}，部分 DLC 角色是按住 ${K("BL")} 再按指定鍵，各角色的寫法列在角色頁「終結技」最下面。</p>
   </div>
   <h2>季節限定 Fatality</h2>
   <div class="box sub" style="margin-bottom:0">需擁有對應的季節 DLC Fatality，萬聖節、感恩節、聖誕節版本。</div>
@@ -275,10 +316,35 @@ function controlsPage(){
    <p>1. 先在 <b>Practice</b>（練習模式）把連段裡用到的必殺技單獨練到每次都出得來。　2. 再一段一段接：看到 <span class="lk" style="color:var(--gold);font-weight:800">»</span> 就是「前一招打中後馬上接下一段」。　3. 寫「空中」的段落要在對手被打飛到空中時接。</p>
    <p>用到 ${K("KA")} 的連段需要特定 Kameo，請照遊戲教學畫面指定的 Kameo 練。換邊（交換左右位置）之後，${K("F")} ${K("B")} 會跟著角色面向改變。</p>
   </div>
+  <h2>練習模式（Practice）可以用的功能</h2>
+  <div class="box">
+   <p>以下功能在 MK1 練習模式的設定裡都有（依官方更新說明與攻略整理）。<b>選單的確切位置我沒有查到完整路徑</b>，請在練習模式暫停選單裡找。</p>
+   <p>・<b>幀數顯示（Frame Data）</b>：出招後畫面會顯示發生幀、有利／不利，可以拿來驗證本站的數字。<br>
+   ・<b>判定框顯示</b>：顯示攻擊判定和受擊判定。<br>
+   ・<b>錄製與重播（Playback Recording）</b>：錄下假人的動作讓它重複做，例如練防禦某個連段，或練確定反擊。<br>
+   ・<b>假人設定</b>：可以設定假人的防禦方式、起身攻擊（Getup Attack）和反擊（Reversal Attack）。<br>
+   ・<b>能量補滿量（Super Fill Amount）</b>：讓能量自動補滿，方便一直練強化技和 Breaker。<br>
+   ・<b>更換 Kameo</b>：可以直接在練習設定裡換雙方的 Kameo，練連段挑戰時很方便。<br>
+   ・<b>顯示／隱藏 HUD</b>。</p>
+  </div>
+  <h2>招式屬性與幀數怎麼看</h2>
+  <table class="ct"><tr><th>標示</th><th>意思</th></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="ty hi">上段</span></span></td><td>站著防禦可以擋，蹲下會閃過。</td></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="ty mi">中段</span></span></td><td>站著或蹲著防禦都可以擋，蹲下不會閃過。</td></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="ty lo">下段</span></span></td><td>一定要<b>蹲著</b>防禦。</td></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="ty oh">下壓</span></span></td><td>Overhead，一定要<b>站著</b>防禦。</td></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="ty th">投技</span><span class="ty ub">不可防</span></span></td><td>防禦擋不住。</td></tr>
+   <tr><td>發生 7</td><td>按下後第 7 幀打到對手。數字越小越快，60 幀＝1 秒。</td></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="pos">被擋 +2</span><span class="mid">被擋 −3</span><span class="neg">被擋 −8</span></span></td><td>被對手擋下後，自己比對手早（＋）或晚（−）幾幀能動。綠色＝自己有利；黃色＝稍微不利；紅色＝−7 以下，對手如果有夠快的招式（例如 7 幀發生）就能確定反擊你。</td></tr>
+   <tr><td>完美擋 −13</td><td>只在和「被擋」不同時才顯示：被完美防禦後的有利／不利幀。</td></tr>
+   <tr><td>傷害 70</td><td>打中時的傷害數值，數字越大傷害越高。</td></tr>
+   <tr><td><span class="fdl" style="display:inline-flex;margin:0"><span class="cx">可接必殺</span></span></td><td>這招打中或被擋時，可以直接取消接必殺技。</td></tr>
+  </table>
+  <div class="box sub">屬性與幀數整理自 Altar of Gaming，對應到本站 ${DATA.meta.fd_count.toLocaleString()} 個招式。遊戲平衡更新可能改變數字，可用練習模式的幀數顯示確認。不想看數字，可以取消右上角「幀數」，只保留上段／中段／下段標示。</div>
   <h2>招式表符號說明</h2>
   <table class="ct"><tr><th>寫法</th><th>意思</th></tr>
    <tr><td>${K("D")}, ${K("F")}, ${K("FP")}</td><td>依序輸入（逗號＝接著按）</td></tr>
-   <tr><td>${K("D")} + ${K("BP")}</td><td>同時按（按住 ↓ 再按 △）</td></tr>
+   <tr><td>${K("D")} + ${K("BP")}</td><td>同時按（按住 ${K("D")} 再按 ${K("BP")}）</td></tr>
    <tr><td><span class="lk" style="color:var(--gold);font-weight:800">»</span></td><td>連段中「打中後馬上接下一段」</td></tr>
    <tr><td>↳ 縮排的列</td><td>上一招的追加、變化或強化方式</td></tr>
    <tr><td><span class="warn" style="display:inline-flex">⚠ 來源不一致</span></td><td>兩份資料寫法不同，主欄位採 MKKomplete，請到遊戲內「招式表」或練習模式確認</td></tr>
@@ -329,7 +395,8 @@ addEventListener("resize", setHdr);
 $("#q").addEventListener("input", render);
 $("#mirror").onchange = e => { st.mirror = e.target.checked; localStorage.mk1mirror = st.mirror ? "1" : "0"; render(); };
 $("#zhnote").onchange = e => { st.zh = e.target.checked; localStorage.mk1zh = st.zh ? "1" : "0"; render(); };
-$("#foot").innerHTML = `資料整理自 <a href="https://icemantraveler.github.io/mkksg/mk12/default.htm" target="_blank" rel="noopener">MKKomplete</a>（${DATA.meta.src_icem} 更新）與 <a href="https://www.mortalkombatwarehouse.com/mk12/moves/special/" target="_blank" rel="noopener">Mortal Kombat Warehouse</a>（${DATA.meta.built} 取得），兩邊已交叉比對，不一致處以 ⚠ 標示。招式名稱保留遊戲英文名；Fatality／Animality 附官方繁中名稱。非官方整理，Mortal Kombat 為 Warner Bros. 商標。連段挑戰整理自 <a href="https://altarofgaming.com/character/scorpion/mortal-kombat-1/moves/" target="_blank" rel="noopener">Altar of Gaming</a>（${DATA.meta.built} 取得）。版本 ${DATA.meta.version}（${DATA.meta.built}）。`;
+$("#fdon").onchange = e => { st.fd = e.target.checked; localStorage.mk1fd = st.fd ? "1" : "0"; render(); };
+$("#foot").innerHTML = `資料整理自 <a href="https://icemantraveler.github.io/mkksg/mk12/default.htm" target="_blank" rel="noopener">MKKomplete</a>（${DATA.meta.src_icem} 更新）與 <a href="https://www.mortalkombatwarehouse.com/mk12/moves/special/" target="_blank" rel="noopener">Mortal Kombat Warehouse</a>（${DATA.meta.built} 取得），兩邊已交叉比對，不一致處以 ⚠ 標示。招式名稱保留遊戲英文名；Fatality／Animality 附官方繁中名稱。非官方整理，Mortal Kombat 為 Warner Bros. 商標。連段挑戰、招式屬性與幀數整理自 <a href="https://altarofgaming.com/character/scorpion/mortal-kombat-1/moves/" target="_blank" rel="noopener">Altar of Gaming</a>（${DATA.meta.built} 取得）。版本 ${DATA.meta.version}（${DATA.meta.built}）。`;
 setHdr(); render();
 </script>
 </body>
