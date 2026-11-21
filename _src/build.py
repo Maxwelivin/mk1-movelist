@@ -17,19 +17,19 @@ MKW_ID = {"generalshao": "shao", "kenshitakahashi": "kenshi", "takedatakahashi":
 
 # section title -> (kind, 中文標題, sort order)
 KIND = [
-    ("Special Moves", "special", "必殺技", 10),
-    ("Fatal Blow", "fatalblow", "Fatal Blow", 20),
-    ("Finishers", "finish", "終結技（Fatality／Animality）", 30),
-    ("Fatality", "finish", "Kameo Fatality", 30),
-    ("Basic Attacks", "basic", "普通技", 40),
-    ("Black Dragon", "basic", "普通技", 41),
-    ("Kombos", "kombo", "Kombo 招式串", 50),
-    ("Basic Aerial Attacks", "air", "空中普通技", 60),
-    ("Aerial Kombos", "airkombo", "空中 Kombo", 70),
-    ("Throws", "throw", "投技", 80),
-    ("Breakers", "breaker", "Breaker（連段破解）", 90),
-    ("Taunts", "taunt", "挑釁", 95),
-    ("Brutalities", "brutal", "Brutality", 100),
+    ("Special Moves", "special", "SPECIAL MOVES", 10),
+    ("Fatal Blow", "fatalblow", "FATAL BLOW", 20),
+    ("Finishers", "finish", "FINISHERS", 30),
+    ("Fatality", "finish", "KAMEO FATALITY", 30),
+    ("Basic Attacks", "basic", "BASIC ATTACKS", 40),
+    ("Black Dragon", "basic", "BASIC ATTACKS", 41),
+    ("Kombos", "kombo", "KOMBOS", 50),
+    ("Basic Aerial Attacks", "air", "AERIAL ATTACKS", 60),
+    ("Aerial Kombos", "airkombo", "AERIAL KOMBOS", 70),
+    ("Throws", "throw", "THROWS", 80),
+    ("Breakers", "breaker", "BREAKERS", 90),
+    ("Taunts", "taunt", "TAUNTS", 95),
+    ("Brutalities", "brutal", "BRUTALITIES", 100),
 ]
 
 # disputed entries: (char id, item name, substring of input or "", message with tokens)
@@ -52,8 +52,8 @@ def kind_of(title):
     for key, kind, zt, order in KIND:
         if title.startswith(key) or base == key:
             if key == "Black Dragon":
-                return kind, "普通技－" + title, order
-            label = zt + ("－" + variant if variant else "")
+                return kind, "BASIC ATTACKS · " + title.upper(), order
+            label = zt + (" · " + variant.upper() if variant else "")
             return kind, label, order
     return None
 
@@ -110,7 +110,7 @@ for c in data["chars"]:
                 (target if target is not None else fin).append(it)
             items = fin
             if bru:
-                secs.append({"k": "brutal", "t": "Brutality", "o": 100, "items": bru})
+                secs.append({"k": "brutal", "t": "BRUTALITIES", "o": 100, "items": bru})
         if kind == "finish":
             for it in items:
                 if it.get("sub"):
@@ -123,7 +123,7 @@ for c in data["chars"]:
             sec["note"] = s["note"]
         secs.append(sec)
     if c["id"] in trials:
-        secs.append({"k": "trial", "t": "連段挑戰（教學模式）", "o": 25, "note": TRIAL_NOTE,
+        secs.append({"k": "trial", "t": "KOMBO CHALLENGES", "o": 25, "note": TRIAL_NOTE,
                      "items": [{k: t[k] for k in ("n", "i", "warn") if k in t} for t in trials[c["id"]]]})
     secs.sort(key=lambda x: x["o"])
     for s in secs:
@@ -418,7 +418,7 @@ for c in chars:
 print(f"trial steps: {steps_named}/{steps_total} identified")
 
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v6", "fd_count": fd_hit}
+        "src_icem": "2026-03-15", "version": "v7", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
