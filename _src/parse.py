@@ -64,13 +64,19 @@ def parse_line(raw, ps):
         rest = text
         if not sub and "⟦" not in text:
             item["n"], rest = text, ""
+        elif not sub:  # source forgot the colon: "Diving Glacier D, B, BK"
+            mm = re.match(r"^([A-Z][A-Za-z'’\-]*(?: [A-Z][A-Za-z'’\-]*)+),?\s+(⟦.*)$", text)
+            if mm and not mm.group(1).startswith(("Hold", "Press", "Tap")):
+                item["n"], rest = mm.group(1), mm.group(2)
+            else:
+                sub = True  # explanatory line such as "Hold R2 instead to ..."
     mm = DMG_RE.search(rest)
     if mm:
         item["dmg"] = mm.group(1)
         rest = rest[:mm.start()]
     mm = RANGE_RE.search(rest)
     if mm:
-        item["r"] = re.sub(r"\s*([-/])\s*", r"", mm.group(1))
+        item["r"] = re.sub(r"\s*([-/])\s*", r"\1", mm.group(1))
         if mm.group(2):
             item["rn"] = mm.group(2)
         rest = rest[:mm.start()]

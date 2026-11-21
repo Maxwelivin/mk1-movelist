@@ -191,6 +191,30 @@ def toks(s, outer_only):
     return out
 
 
+EASY = {"fat": "Hold ⟦b:BL⟧, ⟦b:FK⟧", "ani": "Hold ⟦b:BL⟧, ⟦b:BP⟧", "kam": "Hold ⟦b:BL⟧, ⟦b:FP⟧"}
+GAME_DMG = {("subzero", "Ice Slide"): "60.00", ("subzero", "Shove"): "20.00"}
+# names as spelled in the in-game move list (MKKomplete spelling differs)
+GAME_NAMES = {("subzero", "Ice Clone"): "Ice Klone", ("subzero", "Ice Clone Charge"): "Ice Klone Charge",
+              ("madambo-kameo", "Bottle Toss - Close"): "Close Bottle Toss",
+              ("madambo-kameo", "Bottle Toss - Far"): "Far Bottle Toss",
+              ("madambo-kameo", "Enhanced Stumble Toward"): "Enhanced Sloshed Stumble Toward",
+              ("madambo-kameo", "Enhanced Stumble Away"): "Enhanced Sloshed Stumble Away",
+              ("madambo-kameo", "Drunken Dive"): "(Air) Drunken Dive",
+              ("madambo-kameo", "The Customer is Wrong"): "The Customer Is Wrong"}
+GAME_INPUT = {("subzero", "Ice Klone"): "⟦d:D⟧, ⟦d:B⟧, ⟦b:FP⟧ (Also in Air)（強化：出招後點一下 ⟦b:BL⟧）（完全強化：最後 ⟦b:FP⟧ + ⟦b:BL⟧ 同時按）"}
+for c in chars:
+    for s in c["secs"]:
+        for it in s["items"]:
+            new = GAME_NAMES.get((c["id"], it.get("n")))
+            if new:
+                it["n"] = new
+            inp = GAME_INPUT.get((c["id"], it.get("n")))
+            if inp:
+                it["i"] = inp
+renamed = sum(1 for c in chars for s in c["secs"] for it in s["items"] if (c["id"], it.get("n")) in {(k[0], v) for k, v in GAME_NAMES.items()})
+if renamed != len(GAME_NAMES):
+    raise SystemExit(f"GAME_NAMES applied {renamed}/{len(GAME_NAMES)}")
+
 fd_hit = fd_badinput = 0
 bad_log = []
 for c in chars:
@@ -238,15 +262,43 @@ for c in chars:
                     fd["cx"] = 1
                 it["fd"] = fd
                 fd_hit += 1
-    # Easy Fatality rows (first one is the standard; extra ones are unlabeled in the source)
-    efs = [r for r in frames.get(c["id"], []) if r["n"] == "Easy Fatality"]
+    # Easy versions: the in-game move list (Sub-Zero, photographed 2026-11-21) shows
+    # Fatality = Hold R2, X ; Animality = Hold R2, Triangle ; Kameo Fatality = Hold R2, Square.
     fin = next((s for s in c["secs"] if s["k"] == "finish"), None)
-    for k, r in enumerate(efs):
-        row = {"n": "Easy Fatality", "i": r["i"], "zh": "簡易終結技（需代幣）"}
-        if k:
-            row["n"] = f"Easy Fatality（第 {k + 1} 筆）"
-            row["warn"] = "!來源未註明這一筆的用途（排在 Animality 或另一個 Fatality 後面），請在遊戲招式表確認。"
-        fin["items"].append(row)
+    aog_ef = [r["i"] for r in frames.get(c["id"], []) if r["n"] == "Easy Fatality"]
+    odd = [x for x in aog_ef if x not in (EASY["fat"], EASY["ani"], "⟦b:FK⟧ + ⟦b:BL⟧")]
+    out, done = [], set()
+    for it in fin["items"]:
+        out.append(it)
+        nm = it.get("n", "")
+        kind = "fat" if nm.startswith("Fatality") else "ani" if nm.startswith("Animality") else None
+        if kind and not it.get("sub"):
+            last = kind == "ani" or not any(x.get("n", "").startswith("Fatality") for x in fin["items"][fin["items"].index(it) + 1:])
+            if last and kind not in done:
+                row = {"n": "Easy Fatality" if kind == "fat" else "Easy Animality", "i": EASY[kind], "sub": 1,
+                       "zh": "簡易版（需 Easy Fatality 代幣）"}
+                if odd:
+                    row["warn"] = "!依遊戲內招式表的通用按法；Altar of Gaming 這位角色另寫有 " + "、".join(odd) + "，請在遊戲招式表確認。"
+                out.append(row)
+                done.add(kind)
+    fin["items"] = out
+for c in chars:  # Kameo Fatality easy version
+    if c["group"] == "kameo":
+        fin = next((s for s in c["secs"] if s["k"] == "finish"), None)
+        if fin:
+            fin["items"].append({"n": "Easy Fatality", "i": EASY["kam"], "sub": 1, "zh": "簡易版（需 Easy Fatality 代幣）"})
+# damage checked against the in-game move list (Sub-Zero photos); AoG's Shove damage (130) is wrong
+for c in chars:
+    for s in c["secs"]:
+        for it in s["items"]:
+            fd = it.get("fd")
+            if not fd:
+                continue
+            fix = GAME_DMG.get((c["id"], it.get("n")))
+            if fix:
+                fd["dmg"], it["warn"] = fix, "!傷害已依遊戲內招式表更正（Altar of Gaming 是舊數值）；幀數仍來自 Altar of Gaming，可能也是舊版本。"
+            elif it.get("n") == "Shove":
+                fd.pop("dmg", None)
 (SRC / "frames_match_report.txt").write_text("\n".join(bad_log), encoding="utf-8")
 print(f"frame data attached: {fd_hit} rows; name matched but input differs (not attached): {fd_badinput}")
 
@@ -366,7 +418,7 @@ for c in chars:
 print(f"trial steps: {steps_named}/{steps_total} identified")
 
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v5", "fd_count": fd_hit}
+        "src_icem": "2026-03-15", "version": "v6", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
