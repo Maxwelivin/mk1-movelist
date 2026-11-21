@@ -366,7 +366,7 @@ for c in chars:
 print(f"trial steps: {steps_named}/{steps_total} identified")
 
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v4", "fd_count": fd_hit}
+        "src_icem": "2026-03-15", "version": "v5", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
