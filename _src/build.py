@@ -417,11 +417,101 @@ for c in chars:
         it["steps"] = steps
 print(f"trial steps: {steps_named}/{steps_total} identified")
 
+# ---- v8: in-game move list layout (BASIC ATTACKS / SPECIAL MOVES / KAMEO MOVES / FINISHERS) ----
+
+
+def variant(sec):
+    return sec["t"].split(" · ", 1)[1] if " · " in sec["t"] else ""
+
+
+def chain(basics, kombos):
+    """Put each kombo string right under the basic attack it starts with (like the in-game list)."""
+    bt = [toks(b.get("i", ""), True) for b in basics]
+    attach, rest = {i: [] for i in range(len(basics))}, []
+    for k in kombos:
+        kt = toks(k.get("i", ""), True)
+        best = None
+        for i, t in enumerate(bt):
+            if t and len(kt) > len(t) and kt[:len(t)] == t and (best is None or len(t) > len(bt[best])):
+                best = i
+        (attach[best] if best is not None else rest).append(k)
+    out = []
+    for i, b in enumerate(basics):
+        out.append(b)
+        out += [dict(k, ch=1) for k in attach[i]]
+    return out + rest
+
+
+chained = unchained = 0
+for c in chars:
+    secs = c.pop("secs")
+    by = {}
+    for s in secs:
+        by.setdefault(s["k"], []).append(s)
+    tabs = []
+    if c["group"] == "main":
+        groups, vs = [], []
+        for s in by.get("basic", []) + by.get("kombo", []):
+            if variant(s) not in vs:
+                vs.append(variant(s))
+        for v in vs:
+            b = [it for s in by.get("basic", []) if variant(s) == v for it in s["items"]]
+            k = [it for s in by.get("kombo", []) if variant(s) == v for it in s["items"]]
+            items = chain(b, k)
+            n_ch = sum(1 for it in items if it.get("ch"))
+            chained += n_ch
+            unchained += len(k) - n_ch
+            groups.append({"h": v, "items": items})
+        avs = []
+        for s in by.get("air", []) + by.get("airkombo", []):
+            if variant(s) not in avs:
+                avs.append(variant(s))
+        for v in avs:
+            b = [it for s in by.get("air", []) if variant(s) == v for it in s["items"]]
+            k = [it for s in by.get("airkombo", []) if variant(s) == v for it in s["items"]]
+            groups.append({"h": "AERIAL ATTACKS" + (" · " + v if v else ""), "items": chain(b, k)})
+        for kind, h in (("throw", "THROWS"), ("breaker", "BREAKERS"), ("taunt", "TAUNTS")):
+            for s in by.get(kind, []):
+                groups.append({"h": h, "items": s["items"]})
+        tabs.append({"id": "basic", "t": "BASIC ATTACKS", "groups": groups})
+        groups = [{"h": "SPECIAL MOVES" + (" · " + variant(s) if variant(s) else ""), "items": s["items"]} for s in by.get("special", [])]
+        groups += [{"h": "FATAL BLOW", "items": s["items"]} for s in by.get("fatalblow", [])]
+        tabs.append({"id": "special", "t": "SPECIAL MOVES", "groups": groups})
+        tabs.append({"id": "kameo", "t": "KAMEO MOVES", "groups": []})  # filled in the browser from the chosen Kameo
+        fat, ani, cur = [], [], None
+        for s in by.get("finish", []):
+            for it in s["items"]:
+                if not it.get("sub"):
+                    cur = ani if it.get("n", "").startswith("Animality") else fat
+                (cur if cur is not None else fat).append(it)
+        groups = [{"h": "FATALITIES", "items": fat}, {"h": "ANIMALITY", "items": ani}]
+        groups += [{"h": "BRUTALITIES", "items": s["items"], "fold": 1} for s in by.get("brutal", [])]
+        tabs.append({"id": "finish", "t": "FINISHERS", "groups": groups})
+        if by.get("trial"):
+            c["trial"] = by["trial"][0]["items"]
+    else:
+        groups = []
+        for s in by.get("special", []):
+            v = variant(s)
+            h = "MAIN FIGHTER MOVES" if v == "MAIN CHARACTER" else "KAMEO MOVES" + (" · " + v if v and v != c["name"].upper() else "")
+            groups.append({"h": h, "items": s["items"]})
+        groups += [{"h": "THROWS", "items": s["items"]} for s in by.get("throw", [])]
+        tabs.append({"id": "kameo", "t": "KAMEO MOVES", "groups": groups})
+        groups = [{"h": "KAMEO FATALITY", "items": s["items"]} for s in by.get("finish", [])]
+        groups += [{"h": "BRUTALITIES", "items": s["items"], "fold": 1} for s in by.get("brutal", [])]
+        tabs.append({"id": "finish", "t": "FINISHERS", "groups": groups})
+    left = set(by) - {"basic", "kombo", "air", "airkombo", "throw", "breaker", "taunt", "special",
+                      "fatalblow", "finish", "brutal", "trial"}
+    if left:
+        raise SystemExit(f"{c['id']}: sections not placed in tabs: {left}")
+    c["tabs"] = tabs
+print(f"v8 tabs: kombo strings under a starter {chained}, left at end of group {unchained}")
+
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v7", "fd_count": fd_hit}
+        "src_icem": "2026-03-15", "version": "v8", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(tpl.replace("/*__DATA__*/null", payload), encoding="utf-8")
-rows = sum(len(s["items"]) for c in chars for s in c["secs"])
+rows = sum(len(g["items"]) for c in chars for t in c["tabs"] for g in t["groups"]) + sum(len(c.get("trial", [])) for c in chars)
 print(f"{len(chars)} chars, {rows} rows -> {OUT} ({OUT.stat().st_size // 1024} KB)")

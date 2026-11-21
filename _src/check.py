@@ -27,17 +27,16 @@ with sync_playwright() as p:
         pg.on("pageerror", lambda e: errors.append(f"{label} pageerror {e}"))
         pg.on("console", lambda m: m.type == "error" and errors.append(f"{label} console {m.text}"))
         pg.goto(url)
-        ids = pg.evaluate("DATA.chars.map(c => c.id)")
-        worst = (0, "")
-        for cid in ids:
-            pg.evaluate(f"location.hash = 'c/{cid}'")
-            pg.wait_for_timeout(30)
+        pages = pg.evaluate("DATA.chars.flatMap(c => c.tabs.map(t => 'c/' + c.id + '/' + t.id).concat(c.trial ? ['k/' + c.id] : []))")
+        for view in pages:
+            pg.evaluate(f"location.hash = '{view}'")
+            pg.wait_for_timeout(25)
             n = pg.evaluate("document.querySelectorAll('.row').length")
-            if n < 3:
-                errors.append(f"{label} {cid}: only {n} rows")
+            if n < 1:
+                errors.append(f"{label} {view}: no rows")
             ov, bad = pg.evaluate(OVERFLOW_JS)
             if ov > 0 or bad:
-                errors.append(f"{label} {cid}: overflow {ov}px {bad}")
+                errors.append(f"{label} {view}: overflow {ov}px {bad}")
         for view in ["", "kameo", "controls", "c/scorpion", "c/tanya", "c/janetcage-kameo", "c/sektor"]:
             pg.evaluate(f"location.hash = '{view}'")
             pg.wait_for_timeout(80)
