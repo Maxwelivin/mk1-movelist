@@ -312,6 +312,7 @@ footer{border-top:1px solid #3a2226}
 .ibtn.dim2{border-color:#4a2a2a;background:#0d0e14;color:#cfc3c1}
 .ibtn:disabled{opacity:.4;cursor:default}
 .warnline{color:#ffcf7a}
+.okmsg{color:#7cc47f;font-weight:700}
 @media (max-width:700px){.cimg{width:120px;height:150px}.alist a .th{width:30px;height:30px}
   header nav{display:grid;grid-template-columns:repeat(4,1fr);width:100%;gap:6px}
   header nav a{font-size:8px;letter-spacing:0;padding:9px 2px;text-align:center}}
@@ -708,6 +709,7 @@ function controlsPage(){
 }
 /* ---- v9: "my images" — stored only on this device (IndexedDB), never uploaded ---- */
 const IMG = {};
+let imgMsg = "";
 const idb = {
   open(){
     return new Promise((ok, no) => {
@@ -771,7 +773,8 @@ async function importPack(file){
     await idb.write(s => known.forEach(([k, v]) => s.put(v, k)));
     known.forEach(([k, v]) => IMG[k] = v);
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
-    msg.textContent = `匯入完成：${known.length} 位角色有圖片了。`;
+    imgMsg = `✔ 匯入完成：${known.length} 位角色有圖片了。`;
+    msg.textContent = imgMsg;
     setTimeout(render, 900);
   } catch (e) { msg.textContent = "匯入失敗：" + (e.message || e); }
 }
@@ -801,7 +804,7 @@ function imagesPage(){
         <button class="ibtn" id="expb" ${n ? "" : "disabled"}>匯出備份</button>
         <button class="ibtn dim2" id="clrb" ${n ? "" : "disabled"}>清除圖片</button>
       </div>
-      <p id="imgmsg" class="sub"></p>
+      <p id="imgmsg" class="okmsg">${esc(imgMsg)}</p>
     </div>
     <h2>怎麼匯入</h2>
     <div class="box"><p>1. Safari 打開網站 → 分享 → <b>加入主畫面</b>。<br>2. 把圖片包檔案（.mk1img）存到 iPhone 的「檔案」App（例如從 OneDrive App 下載）。<br>3. <b>從主畫面的 App</b> 打開 → 上方 <b>IMAGES</b> → 匯入圖片包 → 選那個檔案。</p>
