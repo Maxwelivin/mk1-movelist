@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="MK1招式表">
+<meta name="theme-color" content="#04102a">
 <title>MK1 招式表（PS5）</title>
 <style>
 :root{
@@ -289,6 +296,25 @@ footer{border-top:1px solid #3a2226}
   .tabs a.lr{display:none}
   .row.ch{padding-left:28px}.row.ch::before{left:13px}
 }
+
+/* ===== v9: device-only images ===== */
+.chead{display:flex;align-items:flex-end;gap:12px}
+.ctext{flex:1;min-width:0}
+.cimg{flex:none;width:200px;height:210px;display:flex;align-items:flex-end;justify-content:center;
+  background:radial-gradient(ellipse at 50% 80%,#2a3c70 0,transparent 70%);border-bottom:1px solid #3a2226}
+.cimg img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 4px 10px #000)}
+.ownimg{display:inline-block;margin-top:8px;font:700 12.5px var(--sc);color:var(--dim);border:1px dashed #4a4f66;padding:3px 10px;cursor:pointer}
+.ownimg:hover{color:#fff;border-color:#c46a5e}
+.alist a .th{width:34px;height:34px;object-fit:cover;object-position:top;vertical-align:-9px;margin-right:8px;border:1px solid #3a2226;background:#0d0e14}
+.kth{width:40px;height:40px;object-fit:cover;object-position:top;border:1px solid #3a2226}
+.imgbtns{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.ibtn{display:inline-block;font:800 14px var(--sc);letter-spacing:.5px;color:#f0e2df;background:#24171a;border:2px solid #c46a5e;padding:9px 14px;cursor:pointer}
+.ibtn.dim2{border-color:#4a2a2a;background:#0d0e14;color:#cfc3c1}
+.ibtn:disabled{opacity:.4;cursor:default}
+.warnline{color:#ffcf7a}
+@media (max-width:700px){.cimg{width:120px;height:150px}.alist a .th{width:30px;height:30px}
+  header nav{display:grid;grid-template-columns:repeat(4,1fr);width:100%;gap:6px}
+  header nav a{font-size:8px;letter-spacing:0;padding:9px 2px;text-align:center}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -345,6 +371,7 @@ footer{border-top:1px solid #3a2226}
       <a href="#controls" data-v="controls">CONTROLS</a>
       <a href="#" data-v="list">FIGHTERS</a>
       <a href="#kameo" data-v="kameo">KAMEOS</a>
+      <a href="#images" data-v="images">IMAGES</a>
     </nav>
     <div class="search"><input id="q" type="search" placeholder="搜尋角色或招式名稱" autocomplete="off"></div>
     <div class="opts">
@@ -491,7 +518,7 @@ function charPage(id, tabId){
   let body;
   if (!kam && cur.id === "kameo"){
     const opts = KAMEOS.map(k => `<option value="${k.id}"${k.id === st.kameo ? " selected" : ""}>${esc(k.name)}</option>`).join("");
-    body = `<div class="kpick">Kameo：<select id="kmsel">${opts}</select><span class="dim">選你在遊戲裡裝備的 Kameo；會記住</span></div>` +
+    body = `<div class="kpick">Kameo：<select id="kmsel">${opts}</select>${IMG[st.kameo] ? `<img class="kth" src="${IMG[st.kameo].m}" alt="">` : ""}<span class="dim">選你在遊戲裡裝備的 Kameo；會記住</span></div>` +
       kameoGroups(st.kameo, "kameo").map(groupHTML).join("") +
       `<div class="dim kref">完整頁面：<a href="#c/${st.kameo}">${esc(byId[st.kameo].name)}（Kameo）</a></div>`;
   } else if (!kam && cur.id === "finish"){
@@ -504,8 +531,10 @@ function charPage(id, tabId){
   }
   const kc = c.trial ? `<a class="kc" href="#k/${c.id}">▶ KOMBO CHALLENGES <span>教學模式連段挑戰 ${c.trial.length} 組・逐步拆解</span></a>` : "";
   return `<a class="back" href="${kam ? "#kameo" : "#"}">← 回${kam ? " Kameo" : "角色"}列表</a>
-    <h1>${esc(c.name)}${kam ? "（Kameo）" : ""}</h1>
+    <div class="chead"><div class="ctext"><h1>${esc(c.name)}${kam ? "（Kameo）" : ""}</h1>
     <div class="sub">${esc(c.title || "")} <span class="tag ${c.pack}">${(kam ? PACK : PACK_MAIN)[c.pack]}</span>　<span class="dim">Facing Right（面向右）</span></div>
+    <label class="ownimg">${IMG[c.id] ? "更換圖片" : "＋加入圖片"}<input type="file" accept="image/*" data-ownimg="${c.id}" hidden></label></div>
+    ${IMG[c.id] ? `<div class="cimg"><img src="${IMG[c.id].r}" alt=""></div>` : ""}</div>
     ${kc}${bar}<div class="mlist">${body}</div>`;
 }
 function trialPage(id){
@@ -548,7 +577,7 @@ function listPage(kind){
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
   const az = letters.map(L => `<button data-az="${L}" ${groups[L] ? "" : "disabled"}>${L}</button>`).join("");
   const body = letters.filter(L => groups[L]).map(L => `<div class="grp" id="az-${L === "#" ? "num" : L}"><div class="lt">${L}</div>` +
-    groups[L].map(c => `<a href="#c/${c.id}"><span class="nm">${esc(c.name)}</span>${c.pack !== "base" ? `<small class="${c.pack}">${c.pack.toUpperCase()}</small>` : ""}<span class="tt">${esc(c.title || "")}</span></a>`).join("") + `</div>`).join("");
+    groups[L].map(c => `<a href="#c/${c.id}">${IMG[c.id] ? `<img class="th" src="${IMG[c.id].m}" alt="">` : ""}<span class="nm">${esc(c.name)}</span>${c.pack !== "base" ? `<small class="${c.pack}">${c.pack.toUpperCase()}</small>` : ""}<span class="tt">${esc(c.title || "")}</span></a>`).join("") + `</div>`).join("");
   const hero = kam ? "" : `<div class="hero">
     <div class="pad"><div class="art">${PAD_ART.left}</div><h4>Quick Start:</h4><ul>
       <li><a href="#controls">基本操作表</a></li><li><a href="#kameo">Kameo 助攻</a></li><li><a href="#c/scorpion">從 Scorpion 開始</a></li></ul></div>
@@ -677,6 +706,114 @@ function controlsPage(){
    <tr><td><span class="warn" style="display:inline-flex">⚠ 來源不一致</span></td><td>兩份資料寫法不同，主欄位採 MKKomplete，請到遊戲內「招式表」或練習模式確認</td></tr>
   </table>`;
 }
+/* ---- v9: "my images" — stored only on this device (IndexedDB), never uploaded ---- */
+const IMG = {};
+const idb = {
+  open(){
+    return new Promise((ok, no) => {
+      const q = indexedDB.open("mk1img", 1);
+      q.onupgradeneeded = () => q.result.createObjectStore("img");
+      q.onsuccess = () => ok(q.result);
+      q.onerror = () => no(q.error);
+    });
+  },
+  async all(){
+    const db = await this.open();
+    return new Promise((ok, no) => {
+      const out = {}, cur = db.transaction("img").objectStore("img").openCursor();
+      cur.onsuccess = () => { const c = cur.result; if (c){ out[c.key] = c.value; c.continue(); } else ok(out); };
+      cur.onerror = () => no(cur.error);
+    });
+  },
+  async write(fn){
+    const db = await this.open();
+    return new Promise((ok, no) => {
+      const t = db.transaction("img", "readwrite");
+      fn(t.objectStore("img"));
+      t.oncomplete = () => ok();
+      t.onerror = () => no(t.error);
+    });
+  }
+};
+const imgCount = () => Object.keys(IMG).filter(k => byId[k]).length;
+const isApp = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+async function loadImages(){
+  try { Object.assign(IMG, await idb.all()); } catch (e) { /* private mode or blocked storage */ }
+  render();
+}
+function readFile(file, asText){
+  return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(r.error); asText ? r.readAsText(file) : r.readAsDataURL(file); });
+}
+function loadImg(src){ return new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; }); }
+function toData(im, w, h, sx = 0, sy = 0, sw = im.width, sh = im.height){
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  cv.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, w, h);
+  const webp = cv.toDataURL("image/webp", 0.82);
+  return webp.startsWith("data:image/webp") ? webp : cv.toDataURL("image/png");
+}
+async function setOwnImage(id, file){
+  const im = await loadImg(await readFile(file));
+  const k = Math.min(1, 600 / Math.max(im.width, im.height));
+  const r = toData(im, Math.round(im.width * k), Math.round(im.height * k));
+  const side = Math.min(im.width, im.height);           // square thumbnail from the top-centre
+  const m = toData(im, 120, 120, (im.width - side) / 2, 0, side, side);
+  IMG[id] = {r, m};
+  await idb.write(s => s.put(IMG[id], id));
+  render();
+}
+async function importPack(file){
+  const msg = $("#imgmsg");
+  try {
+    msg.textContent = "匯入中…";
+    const pack = JSON.parse(await readFile(file, true));
+    if (pack.format !== "mk1-imgpack" || !pack.images) throw new Error("這不是 MK1 圖片包檔案");
+    const known = Object.entries(pack.images).filter(([k, v]) => byId[k] && v && v.r);
+    await idb.write(s => known.forEach(([k, v]) => s.put(v, k)));
+    known.forEach(([k, v]) => IMG[k] = v);
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+    msg.textContent = `匯入完成：${known.length} 位角色有圖片了。`;
+    setTimeout(render, 900);
+  } catch (e) { msg.textContent = "匯入失敗：" + (e.message || e); }
+}
+function exportPack(){
+  const images = Object.fromEntries(Object.entries(IMG).filter(([k]) => byId[k]));
+  const blob = new Blob([JSON.stringify({format: "mk1-imgpack", version: 1, created: new Date().toISOString().slice(0, 10), count: Object.keys(images).length, images})], {type: "application/octet-stream"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "MK1圖片備份.mk1img";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+async function clearImages(){
+  if (!confirm("確定要清除這支手機上所有角色圖片嗎？")) return;
+  await idb.write(s => s.clear());
+  Object.keys(IMG).forEach(k => delete IMG[k]);
+  render();
+}
+function imagesPage(){
+  const n = imgCount(), total = DATA.chars.length;
+  return `<h1>Images</h1>
+    <div class="sub">角色圖片只存在<b>這支手機</b>裡，不會上傳，別人打開網站也看不到。</div>
+    <div class="box">
+      <p>目前有圖片：<b>${n}</b> / ${total} 位角色${isApp() ? "（主畫面 App）" : "（瀏覽器）"}</p>
+      ${isApp() ? "" : `<p class="warnline">⚠ 你現在是用瀏覽器開的。iPhone 的「主畫面 App」和 Safari 圖片是<b>分開存</b>的：請先把網站加入主畫面，<b>再從主畫面的 App 打開這頁</b>匯入。</p>`}
+      <div class="imgbtns">
+        <label class="ibtn">匯入圖片包<input type="file" id="impf" hidden></label>
+        <button class="ibtn" id="expb" ${n ? "" : "disabled"}>匯出備份</button>
+        <button class="ibtn dim2" id="clrb" ${n ? "" : "disabled"}>清除圖片</button>
+      </div>
+      <p id="imgmsg" class="sub"></p>
+    </div>
+    <h2>怎麼匯入</h2>
+    <div class="box"><p>1. Safari 打開網站 → 分享 → <b>加入主畫面</b>。<br>2. 把圖片包檔案（.mk1img）存到 iPhone 的「檔案」App（例如從 OneDrive App 下載）。<br>3. <b>從主畫面的 App</b> 打開 → 上方 <b>IMAGES</b> → 匯入圖片包 → 選那個檔案。</p>
+    <p>單一角色也可以到角色頁按「更換圖片」，從相簿選自己的截圖。換手機前先「匯出備份」。</p></div>`;
+}
+function bindImages(){
+  const f = $("#impf"); if (f) f.onchange = () => f.files[0] && importPack(f.files[0]);
+  const e = $("#expb"); if (e) e.onclick = exportPack;
+  const c = $("#clrb"); if (c) c.onclick = clearImages;
+  document.querySelectorAll("[data-ownimg]").forEach(inp => inp.onchange = () => inp.files[0] && setOwnImage(inp.dataset.ownimg, inp.files[0]));
+}
+
 function searchPage(q){
   const ql = q.toLowerCase();
   const hitsC = DATA.chars.filter(c => c.name.toLowerCase().includes(ql));
@@ -691,7 +828,7 @@ function searchPage(q){
     for (const it of c.trial || []) add(c, "KOMBO CHALLENGES", it, `#k/${c.id}`);
   }
   return `<h1>搜尋：「${esc(q)}」</h1>
-    ${hitsC.length ? `<div class="alist" style="margin:10px 0">${hitsC.map(c => `<a href="#c/${c.id}"><span class="nm">${esc(c.name)}</span><span class="tt">${c.group === "kameo" ? "Kameo" : esc(c.title)}</span></a>`).join("")}</div>` : ""}
+    ${hitsC.length ? `<div class="alist" style="margin:10px 0">${hitsC.map(c => `<a href="#c/${c.id}">${IMG[c.id] ? `<img class="th" src="${IMG[c.id].m}" alt="">` : ""}<span class="nm">${esc(c.name)}</span><span class="tt">${c.group === "kameo" ? "Kameo" : esc(c.title)}</span></a>`).join("")}</div>` : ""}
     <div class="sub">招式 ${n} 筆${n > 300 ? "（只顯示前 300 筆）" : ""}</div>
     ${out.length ? `<div class="mlist"><div class="rows">${out.join("")}</div></div>` : `<div class="empty">找不到符合的招式。</div>`}`;
 }
@@ -705,8 +842,10 @@ function render(){
   else if (h.startsWith("k/")){ view = "char"; html = trialPage(h.split("/")[1]); }
   else if (h === "controls"){ view = "controls"; const m = st.mirror; st.mirror = false; html = controlsPage(); st.mirror = m; }
   else if (h === "kameo"){ view = "kameo"; html = listPage("kameo"); }
+  else if (h === "images"){ view = "images"; html = imagesPage(); }
   else { view = "list"; html = listPage("main"); }
   $("#app").innerHTML = html;
+  bindImages();
   document.querySelectorAll("nav a[data-v]").forEach(a => a.classList.toggle("on", a.dataset.v === view || (view === "char" && byId[h.split("/")[1]] && ((byId[h.split("/")[1]].group === "kameo") === (a.dataset.v === "kameo")) && a.dataset.v !== "controls")));
   document.querySelectorAll("[data-pack]").forEach(b => b.onclick = () => { st.pack = b.dataset.pack; render(); });
   document.querySelectorAll("[data-az]").forEach(b => b.onclick = () => { const el = document.getElementById("az-" + (b.dataset.az === "#" ? "num" : b.dataset.az)); if (el) el.scrollIntoView({behavior: "smooth"}); });
@@ -728,7 +867,8 @@ $("#zhnote").onchange = e => { st.zh = e.target.checked; localStorage.mk1zh = st
 $("#fdon").onchange = e => { st.fd = e.target.checked; localStorage.mk1fd = st.fd ? "1" : "0"; render(); };
 $("#foot").innerHTML = `資料整理自 <a href="https://icemantraveler.github.io/mkksg/mk12/default.htm" target="_blank" rel="noopener">MKKomplete</a>（${DATA.meta.src_icem} 更新）與 <a href="https://www.mortalkombatwarehouse.com/mk12/moves/special/" target="_blank" rel="noopener">Mortal Kombat Warehouse</a>（${DATA.meta.built} 取得），兩邊已交叉比對，不一致處以 ⚠ 標示。招式名稱保留遊戲英文名；Fatality／Animality 附官方繁中名稱。非官方整理，Mortal Kombat 為 Warner Bros. 商標。連段挑戰、招式屬性與幀數整理自 <a href="https://altarofgaming.com/character/scorpion/mortal-kombat-1/moves/" target="_blank" rel="noopener">Altar of Gaming</a>（${DATA.meta.built} 取得）。版本 ${DATA.meta.version}（${DATA.meta.built}）。`;
 $("#upd").textContent = "Nov. 21, 2026"; $("#ver").textContent = "· " + DATA.meta.version;
-setHdr(); render();
+setHdr(); render(); loadImages();
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js");
 </script>
 </body>
 </html>

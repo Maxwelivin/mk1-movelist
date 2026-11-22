@@ -1,0 +1,15 @@
+{
+  "name": "MK1 招式表（PS5）",
+  "short_name": "MK1招式表",
+  "description": "Mortal Kombat 1 全角色招式表、連段挑戰拆解與操作表（PS5 按鍵）",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#04102a",
+  "theme_color": "#04102a",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

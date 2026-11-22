@@ -508,10 +508,15 @@ for c in chars:
 print(f"v8 tabs: kombo strings under a starter {chained}, left at end of group {unchained}")
 
 meta = {"seasonal": data["seasonal"], "built": "2026-11-21",
-        "src_icem": "2026-03-15", "version": "v8", "fd_count": fd_hit}
+        "src_icem": "2026-03-15", "version": "v9", "fd_count": fd_hit}
 payload = json.dumps({"chars": chars, "meta": meta}, ensure_ascii=False, separators=(",", ":"))
 tpl = (SRC / "template.html").read_text(encoding="utf-8")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 OUT.write_text(tpl.replace("/*__DATA__*/null", payload), encoding="utf-8")
+# PWA files next to the page (icons are rendered by make_icons.py)
+PWA = SRC / "pwa"
+for f in ("manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"):
+    (OUT.parent / f).write_bytes((PWA / f).read_bytes())
+(OUT.parent / "sw.js").write_text((PWA / "sw.js").read_text(encoding="utf-8").replace("__VERSION__", meta["version"]), encoding="utf-8")
 rows = sum(len(g["items"]) for c in chars for t in c["tabs"] for g in t["groups"]) + sum(len(c.get("trial", [])) for c in chars)
 print(f"{len(chars)} chars, {rows} rows -> {OUT} ({OUT.stat().st_size // 1024} KB)")

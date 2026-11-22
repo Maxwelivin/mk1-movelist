@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2a78"/><stop offset="1" stop-color="#020a24"/></linearGradient>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#3d6bd0" stroke-opacity=".35" stroke-width="2"/></pattern>
+    <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".42" stop-color="#b9d4ff"/><stop offset=".5" stop-color="#1c4fbf"/><stop offset=".62" stop-color="#5e93ff"/><stop offset="1" stop-color="#eef5ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#grid)"/>
+  <polygon points="300,40 360,40 316,190 372,190 230,470 262,260 206,260" fill="#fff" opacity=".18"/>
+  <g transform="translate(256 300) skewX(-10)">
+    <text text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="210" font-weight="900" fill="none" stroke="#7a3a35" stroke-width="18" stroke-linejoin="round">MK1</text>
+    <text text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="210" font-weight="900" fill="url(#chrome)" stroke="#000d33" stroke-width="6" stroke-linejoin="round">MK1</text>
+  </g>
+  <g transform="translate(256 400)" fill="none" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M-120 -22 -100 12H-140Z" stroke="#3fcf9f"/>
+    <circle cx="-40" cy="-4" r="17" stroke="#ff6170"/>
+    <path d="M24 -20 58 14M58 -20 24 14" stroke="#7ea8ff"/>
+    <rect x="104" y="-20" width="34" height="34" stroke="#f28fd3"/>
+  </g>
+</svg>
